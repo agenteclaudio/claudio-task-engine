@@ -1,0 +1,24 @@
+{
+  "name": "claudio-task-engine",
+  "version": "1.0.0",
+  "description": "Task management system for OpenClaw AI assistant",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "cte": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "dev": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^25.2.3",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18",
+    "zod": "^4.3.6"
+  }
+}
