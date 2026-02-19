@@ -14,7 +14,12 @@
       "completed_at": "2026-02-18T05:04:55.771Z",
       "assignee": null,
       "result": "Guía de 707 líneas en docs/tasks/task-002-cc-guide.md. Cubre: prompting patterns, hooks, tasks, subagentes, MCP, basado en IndyDevDan + Anthropic docs.",
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-003",
@@ -32,7 +37,12 @@
       "completed_at": "2026-02-18T03:14:09.988Z",
       "assignee": null,
       "result": "Resuelto 2026-02-17: se configuró exec allowlist en gateway config.",
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-004",
@@ -50,7 +60,12 @@
       "completed_at": "2026-02-18T05:02:55.639Z",
       "assignee": null,
       "result": "Reporte en ~/projects/research/memory-search-monitoring.md. Mem0 muy nuevo (27h), docs grandes no indexados, 352 facts de Hindsight perdidos. Rec: ingestar archivos clave, splitear docs grandes.",
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-005",
@@ -68,7 +83,12 @@
       "completed_at": null,
       "assignee": null,
       "result": "CANCELLED - Hindsight desinstalado (crasheaba server, sin GPU). Obsoleto.",
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-006",
@@ -87,7 +107,12 @@
       "completed_at": "2026-02-18T05:02:41.642Z",
       "assignee": null,
       "result": "Comparativa en ~/projects/research/memory-systems-comparison.md. Recomendación: SQLite+FTS5 reemplaza Qdrant para <10K entries.",
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-007",
@@ -105,7 +130,12 @@
       "completed_at": null,
       "assignee": null,
       "result": null,
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-008",
@@ -123,7 +153,12 @@
       "completed_at": "2026-02-18T05:02:41.746Z",
       "assignee": null,
       "result": "Plan en docs/tasks/task-008-talk-mode-plan.md. Arquitectura: PWA + Groq STT + Kokoro TTS. Effort: 4-7 días. Costo: /bin/bash/mes local.",
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-009",
@@ -139,7 +174,12 @@
       "completed_at": null,
       "assignee": null,
       "result": null,
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-010",
@@ -155,7 +195,12 @@
       "completed_at": null,
       "assignee": null,
       "result": null,
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-011",
@@ -171,7 +216,12 @@
       "completed_at": "2026-02-16T20:38:43.042Z",
       "assignee": null,
       "result": null,
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-012",
@@ -187,7 +237,12 @@
       "completed_at": "2026-02-18T05:02:41.935Z",
       "assignee": null,
       "result": "Análisis en ~/projects/research/server-upgrade-analysis.md. Rec: Ryzen 5 5600X (~00) + 16GB RAM extra. GPU: RTX 3060 12GB si se necesita ML.",
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-013",
@@ -203,7 +258,12 @@
       "completed_at": "2026-02-16T20:38:42.958Z",
       "assignee": null,
       "result": null,
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-014",
@@ -219,7 +279,12 @@
       "completed_at": null,
       "assignee": null,
       "result": null,
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-015",
@@ -235,7 +300,12 @@
       "completed_at": null,
       "assignee": null,
       "result": "Google Calendar OAuth completado 2026-02-17.",
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-016",
@@ -251,7 +321,12 @@
       "completed_at": "2026-02-18T05:02:41.831Z",
       "assignee": null,
       "result": "Guía en docs/tasks/task-016-nano-banana-guide.md. Cubre setup, prompts, editing workflow, limitaciones.",
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-017",
@@ -270,7 +345,12 @@
       "completed_at": "2026-02-18T05:04:55.854Z",
       "assignee": null,
       "result": "Reporte en ~/projects/research/huawei-fit4-export.md. 8 métodos documentados. Insight clave: mic del Fit 4 es para llamadas BT, no graba audios almacenados. Falta validar con búsqueda web profunda.",
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-018",
@@ -286,7 +366,12 @@
       "completed_at": null,
       "assignee": null,
       "result": null,
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-019",
@@ -305,7 +390,12 @@
       "completed_at": null,
       "assignee": null,
       "result": null,
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-020",
@@ -321,13 +411,18 @@
       "completed_at": null,
       "assignee": null,
       "result": null,
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     },
     {
       "id": "task-021",
       "title": "Refinar y completar reporte PDF del plan de orquestacion Claudio-CC (Fase 4 falta, incorporar feedback de Pablo)",
       "description": null,
-      "status": "pending",
+      "status": "completed",
       "priority": "P2",
       "dependencies": [],
       "tags": [],
@@ -337,7 +432,185 @@
       "completed_at": null,
       "assignee": null,
       "result": null,
-      "failure_reason": null
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
+    },
+    {
+      "id": "task-022",
+      "title": "Crear specs/context.md para CTE",
+      "description": "Agregar context file en specs/ con estado actual del proyecto",
+      "status": "completed",
+      "priority": "P2",
+      "dependencies": [],
+      "tags": [
+        "cte",
+        "context",
+        "cc-integration"
+      ],
+      "project": "openclaw",
+      "created_at": "2026-02-19T02:26:37.264Z",
+      "started_at": null,
+      "completed_at": "2026-02-19T05:00:34.370Z",
+      "assignee": null,
+      "result": "specs/context.md created with project state, architecture, DO NOTs, and test commands. Used by CC during /build to avoid regenerating existing code.",
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
+    },
+    {
+      "id": "task-023",
+      "title": "Test kanban UI desde Mac de Pablo vía Tailscale",
+      "description": null,
+      "status": "pending",
+      "priority": "P2",
+      "dependencies": [],
+      "tags": [
+        "cte",
+        "tailscale",
+        "testing"
+      ],
+      "project": "openclaw",
+      "created_at": "2026-02-19T02:26:40.001Z",
+      "started_at": null,
+      "completed_at": null,
+      "assignee": null,
+      "result": null,
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
+    },
+    {
+      "id": "task-024",
+      "title": "Test CC en modo headless (-p flag)",
+      "description": null,
+      "status": "completed",
+      "priority": "P2",
+      "dependencies": [],
+      "tags": [
+        "cc",
+        "headless",
+        "testing"
+      ],
+      "project": "openclaw",
+      "created_at": "2026-02-19T02:26:40.085Z",
+      "started_at": null,
+      "completed_at": "2026-02-19T05:02:30.029Z",
+      "assignee": null,
+      "result": "✓ CC headless mode (-p flag) tested and working. Sub-agent spawned, executed task, completed cleanly. No blocking issues detected. Output captured cleanly without PTY interference.",
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
+    },
+    {
+      "id": "task-025",
+      "title": "Verificar integración night-worker con CTE v2",
+      "description": null,
+      "status": "completed",
+      "priority": "P2",
+      "dependencies": [],
+      "tags": [
+        "cte",
+        "night-worker",
+        "integration"
+      ],
+      "project": "openclaw",
+      "created_at": "2026-02-19T02:26:40.196Z",
+      "started_at": null,
+      "completed_at": "2026-02-19T05:01:29.453Z",
+      "assignee": null,
+      "result": "Integration validated: new schema fields (execution_mode, task_type, estimated_effort, needs_research) are properly persisted, loaded, and displayed. Night-worker can read all fields without errors.",
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
+    },
+    {
+      "id": "task-026",
+      "title": "Research: cómo la gente usa OpenClaw para hábitos y organización diaria",
+      "description": null,
+      "status": "completed",
+      "priority": "P2",
+      "dependencies": [],
+      "tags": [
+        "research",
+        "habits",
+        "productivity"
+      ],
+      "project": "openclaw",
+      "created_at": "2026-02-19T02:47:37.398Z",
+      "started_at": null,
+      "completed_at": null,
+      "assignee": null,
+      "result": null,
+      "failure_reason": null,
+      "execution_mode": "autonomous",
+      "task_type": "research",
+      "workdir": null,
+      "needs_research": true,
+      "estimated_effort": null
+    },
+    {
+      "id": "task-027",
+      "title": "Test night-worker with new schema",
+      "description": "Quick test of execution_mode and task_type fields",
+      "status": "pending",
+      "priority": "P3",
+      "dependencies": [],
+      "tags": [
+        "integration",
+        "test"
+      ],
+      "project": "openclaw",
+      "created_at": "2026-02-19T05:00:44.761Z",
+      "started_at": null,
+      "completed_at": null,
+      "assignee": null,
+      "result": null,
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
+    },
+    {
+      "id": "task-028",
+      "title": "Investigar Voicebox (Qwen3-TTS) para clonación de voz local",
+      "description": "Voicebox: open-source voice cloning local con Qwen3-TTS. Clonar voces desde pocos segundos de audio, sin cloud. Evaluar vs Kokoro TTS actual. Repo: @hasantoxr. Ver viabilidad en nuestro hardware (Ryzen 3 2200G, 16GB, sin GPU).",
+      "status": "pending",
+      "priority": "P3",
+      "dependencies": [],
+      "tags": [
+        "research",
+        "voice"
+      ],
+      "project": "infra",
+      "created_at": "2026-02-19T12:41:23.493Z",
+      "started_at": null,
+      "completed_at": null,
+      "assignee": null,
+      "result": null,
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": true,
+      "estimated_effort": null
     }
   ],
   "projects": []

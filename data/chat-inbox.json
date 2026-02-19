@@ -1,0 +1,10 @@
+[
+  {
+    "timestamp": "2026-02-19T12:34:01.045Z",
+    "message": "Hola claudio, te llega mi mensaje?"
+  },
+  {
+    "timestamp": "2026-02-19T13:14:21.314Z",
+    "message": "test webhook"
+  }
+]

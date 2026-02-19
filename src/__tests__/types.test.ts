@@ -70,7 +70,7 @@ describe("types", () => {
 
   it("validates status enum values", () => {
     expect(TaskStatus.options).toEqual([
-      "pending", "ready", "in_progress", "completed", "failed", "blocked", "waiting_for_input",
+      "pending", "ready", "in_progress", "in_review", "completed", "failed", "blocked", "waiting_for_input",
     ]);
   });
 

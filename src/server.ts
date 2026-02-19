@@ -4,7 +4,7 @@ import path from "node:path";
 import { loadStore, saveStore, addTask, updateTask, deleteTask } from "./store.js";
 import { generateKanban } from "./kanban.js";
 import { computeStatus } from "./dag.js";
-import { parseChatCommand, readOutbox, writeInbox, clearOutbox } from "./chat.js";
+import { parseChatCommand, readOutbox, writeInbox, writeOutbox, clearOutbox } from "./chat.js";
 
 const PORT = parseInt(process.env["CTE_PORT"] ?? "8099", 10);
 const BIND_ADDRS = (process.env["CTE_BIND"] ?? "127.0.0.1,100.70.244.126")
@@ -20,8 +20,46 @@ const STORE_PATH = process.env["CTE_STORE"] ?? path.join(
 );
 
 const DATA_DIR = path.dirname(STORE_PATH);
+const CHAT_WEBHOOK_URL = process.env["CTE_CHAT_WEBHOOK_URL"] ?? "";
+const CHAT_WEBHOOK_TOKEN = process.env["CTE_CHAT_WEBHOOK_TOKEN"] ?? "";
 
 // --- Helpers ---
+
+async function fireWebhook(message: string): Promise<void> {
+  if (!CHAT_WEBHOOK_URL) return;
+  try {
+    const payload = JSON.stringify({
+      message: `CTE Chat message from Pablo: "${message}"\n\nRespond via POST to http://127.0.0.1:8099/api/chat/reply with {"message": "your reply"}. Keep it conversational.`,
+      name: "CTE-Chat",
+      sessionKey: "hook:cte-chat",
+      deliver: false,
+    });
+    const url = new URL(CHAT_WEBHOOK_URL);
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "Content-Length": String(Buffer.byteLength(payload)),
+    };
+    if (CHAT_WEBHOOK_TOKEN) {
+      headers["Authorization"] = `Bearer ${CHAT_WEBHOOK_TOKEN}`;
+    }
+    const options = {
+      method: "POST",
+      hostname: url.hostname,
+      port: url.port || (url.protocol === "https:" ? 443 : 80),
+      path: url.pathname + url.search,
+      headers,
+    };
+    const lib = url.protocol === "https:" ? await import("node:https") : await import("node:http");
+    await new Promise<void>((resolve) => {
+      const r = lib.request(options, (res) => { res.resume(); resolve(); });
+      r.on("error", (e) => { console.error("Webhook error:", e.message); resolve(); });
+      r.write(payload);
+      r.end();
+    });
+  } catch (e) {
+    console.error("Webhook fire error:", e);
+  }
+}
 
 function readBody(req: http.IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -208,9 +246,12 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
         return;
       }
 
-      // It's a plain message — write to inbox
+      // It's a plain message — write to inbox and fire webhook
       const inboxResult = writeInbox(DATA_DIR, parsed.text);
       if (!inboxResult.ok) throw new Error(inboxResult.error);
+
+      // Fire webhook asynchronously (don't block response)
+      fireWebhook(parsed.text);
 
       jsonResponse(res, 200, { type: "message", text: parsed.text, queued: true });
       return;
@@ -226,6 +267,23 @@ async function handleRequest(req: http.IncomingMessage, res: http.ServerResponse
       if (!clearResult.ok) throw new Error(clearResult.error);
 
       jsonResponse(res, 200, { messages });
+      return;
+    }
+
+    // POST /api/chat/reply — OpenClaw posts a reply to show in UI
+    if (method === "POST" && pathname === "/api/chat/reply") {
+      const body = await readBody(req);
+      const { message } = JSON.parse(body) as { message: string };
+
+      if (!message || typeof message !== "string") {
+        errorResponse(res, 400, "Missing 'message' field");
+        return;
+      }
+
+      const outboxResult = writeOutbox(DATA_DIR, message);
+      if (!outboxResult.ok) throw new Error(outboxResult.error);
+
+      jsonResponse(res, 200, { type: "reply", text: message, queued: true });
       return;
     }
 

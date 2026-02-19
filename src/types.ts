@@ -4,6 +4,7 @@ export const TaskStatus = z.enum([
   "pending",
   "ready",
   "in_progress",
+  "in_review",
   "completed",
   "failed",
   "blocked",

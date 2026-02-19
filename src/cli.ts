@@ -176,7 +176,7 @@ function cmdShow(id: string | undefined, sp: string): Result<string> {
 }
 
 function cmdUpdate(id: string | undefined, flags: Record<string, string>, sp: string): Result<string> {
-  if (!id) return err("Usage: cte update <id> [--status pending|in_progress|blocked|completed|failed|cancelled|waiting_for_input] [--priority X] [--result text] [--execution-mode autonomous|review_needed|pair|collaborative] [--task-type X] [--workdir X] [--needs-research] [--estimated-effort X]");
+  if (!id) return err("Usage: cte update <id> [--status pending|in_progress|in_review|blocked|completed|failed|cancelled|waiting_for_input] [--priority X] [--result text] [--execution-mode autonomous|review_needed|pair|collaborative] [--task-type X] [--workdir X] [--needs-research] [--estimated-effort X]");
 
   const storeResult = loadStore(sp);
   if (!storeResult.ok) return storeResult;

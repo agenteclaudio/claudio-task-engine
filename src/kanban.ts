@@ -14,6 +14,7 @@ const STATUS_COLORS: Record<string, string> = {
   backlog: "#64748b",
   ready: "#22d3ee",
   in_progress: "#f59e0b",
+  in_review: "#a855f7",
   waiting_for_input: "#eab308",
   done: "#22c55e",
   failed: "#ef4444",
@@ -109,9 +110,10 @@ function categorize(tasks: Task[], _store: TaskStore): Map<string, { label: stri
   const updated = computeStatus(tasks);
   const columns = new Map<string, { label: string; tasks: Task[] }>([
     ["backlog", { label: "Backlog", tasks: [] }],
-    ["ready", { label: "Ready", tasks: [] }],
     ["waiting_for_input", { label: "Waiting for Input", tasks: [] }],
+    ["ready", { label: "Ready", tasks: [] }],
     ["in_progress", { label: "In Progress", tasks: [] }],
+    ["in_review", { label: "In Review", tasks: [] }],
     ["done", { label: "Done", tasks: [] }],
     ["failed", { label: "Failed", tasks: [] }],
   ]);
@@ -130,6 +132,9 @@ function categorize(tasks: Task[], _store: TaskStore): Map<string, { label: stri
         break;
       case "in_progress":
         columns.get("in_progress")!.tasks.push(t);
+        break;
+      case "in_review":
+        columns.get("in_review")!.tasks.push(t);
         break;
       case "completed":
         columns.get("done")!.tasks.push(t);
@@ -157,7 +162,7 @@ function renderStats(store: TaskStore, columns: Map<string, { label: string; tas
   const completed = columns.get("done")!.tasks.length;
   const progressPct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-  const statKeys = ["backlog", "ready", "waiting_for_input", "in_progress", "done", "failed"];
+  const statKeys = ["backlog", "waiting_for_input", "ready", "in_progress", "in_review", "done", "failed"];
 
   return `
   <div class="stats">
@@ -201,7 +206,7 @@ export function generateKanban(store: TaskStore): string {
   const allTaskTypes = [...new Set(store.tasks.map((t) => t.task_type).filter(Boolean))].sort() as string[];
 
   // All column keys including waiting_for_input
-  const allColumnKeys = ["backlog", "ready", "waiting_for_input", "in_progress", "done", "failed"];
+  const allColumnKeys = ["backlog", "waiting_for_input", "ready", "in_progress", "in_review", "done", "failed"];
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -357,6 +362,7 @@ export function generateKanban(store: TaskStore): string {
   }
   .board.cols-4 { grid-template-columns: repeat(4, 1fr); }
   .board.cols-5 { grid-template-columns: repeat(5, 1fr); }
+  .board.cols-6 { grid-template-columns: repeat(6, 1fr); }
 
   /* Column */
   .column {
@@ -368,6 +374,7 @@ export function generateKanban(store: TaskStore): string {
     min-width: 0;
   }
   .column.column-waiting_for_input { border-color: #eab30844; }
+  .column.column-in_review { border-color: #a855f744; }
   .column-header {
     padding: 14px 16px;
     font-weight: 600;
@@ -735,7 +742,7 @@ ${renderStats(store, columns)}
     ${allTaskTypes.map((t) => `<button class="filter-btn" data-filter-task-type="${escapeHtml(t)}">${TASK_TYPE_ICONS[t] ?? ""} ${escapeHtml(t)}</button>`).join("\n    ")}
   </div>` : ""}
 </div>
-<div class="board cols-4" id="board">
+<div class="board cols-5" id="board">
 ${allColumnKeys
   .map((key) => {
     const col = columns.get(key)!;
@@ -841,8 +848,8 @@ document.getElementById('last-updated').textContent = 'Updated ' + new Date().to
 // Board Mode
 const boardToggle = document.getElementById('board-toggle');
 const board = document.getElementById('board');
-const pabloColumns = ['backlog', 'ready', 'in_progress', 'done'];
-const autonomousColumns = ['backlog', 'ready', 'waiting_for_input', 'in_progress', 'done'];
+const pabloColumns = ['backlog', 'ready', 'in_progress', 'in_review', 'done'];
+const autonomousColumns = ['backlog', 'waiting_for_input', 'ready', 'in_progress', 'in_review', 'done'];
 
 function setBoard(mode) {
   const btns = boardToggle.querySelectorAll('.board-toggle-btn');
@@ -1042,6 +1049,9 @@ async function sendChat() {
   try {
     const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg }) });
     const data = await res.json();
+    if (data.type === 'message' && data.queued) {
+      addChatMessage('⏳ Enviado a Claudio...', 'system');
+    }
     if (data.response) addChatMessage(data.response, 'system');
   } catch (e) {
     addChatMessage('Network error', 'system');

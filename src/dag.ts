@@ -57,8 +57,8 @@ export function computeStatus(tasks: Task[]): Task[] {
   const taskMap = new Map(tasks.map((t) => [t.id, t]));
 
   return tasks.map((t) => {
-    // Don't touch completed, in_progress, failed, or waiting_for_input
-    if (t.status === "completed" || t.status === "in_progress" || t.status === "failed" || t.status === "waiting_for_input") {
+    // Don't touch completed, in_progress, in_review, failed, or waiting_for_input
+    if (t.status === "completed" || t.status === "in_progress" || t.status === "in_review" || t.status === "failed" || t.status === "waiting_for_input") {
       return t;
     }
 
