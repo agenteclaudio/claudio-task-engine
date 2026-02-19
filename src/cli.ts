@@ -74,7 +74,7 @@ export function runCli(args: string[], storePath?: string): Result<string> {
 
 function cmdAdd(positional: string[], flags: Record<string, string>, sp: string): Result<string> {
   const title = positional[0];
-  if (!title) return err("Usage: cte add <title> [--priority P1-P4] [--project X] [--tags a,b] [--deps id1,id2] [--description text] [--execution-mode X] [--task-type X] [--workdir X] [--needs-research] [--estimated-effort X]");
+  if (!title) return err("Usage: cte add <title> [--priority P1-P4] [--project X] [--tags a,b] [--deps id1,id2] [--description text] [--execution-mode autonomous|review_needed|pair|collaborative] [--task-type X] [--workdir X] [--needs-research] [--estimated-effort X]");
 
   const storeResult = loadStore(sp);
   if (!storeResult.ok) return storeResult;
@@ -176,7 +176,7 @@ function cmdShow(id: string | undefined, sp: string): Result<string> {
 }
 
 function cmdUpdate(id: string | undefined, flags: Record<string, string>, sp: string): Result<string> {
-  if (!id) return err("Usage: cte update <id> [--status X] [--priority X] [--result text] [--execution-mode X] [--task-type X] [--workdir X] [--needs-research] [--estimated-effort X]");
+  if (!id) return err("Usage: cte update <id> [--status pending|in_progress|blocked|completed|failed|cancelled|waiting_for_input] [--priority X] [--result text] [--execution-mode autonomous|review_needed|pair|collaborative] [--task-type X] [--workdir X] [--needs-research] [--estimated-effort X]");
 
   const storeResult = loadStore(sp);
   if (!storeResult.ok) return storeResult;

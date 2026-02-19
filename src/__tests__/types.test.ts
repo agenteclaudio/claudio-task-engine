@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { TaskSchema, TaskStoreSchema, Priority, TaskStatus, ExecutionMode, TaskType, EstimatedEffort, ok, err } from "../types.js";
+import { TaskSchema, TaskStoreSchema, Priority, TaskStatus, ExecutionMode, TaskType, EstimatedEffort, ok, err, TAG_CATEGORIES, ALL_TAGS, categorizeTag } from "../types.js";
 
 describe("types", () => {
   it("validates a full task", () => {
@@ -70,7 +70,7 @@ describe("types", () => {
 
   it("validates status enum values", () => {
     expect(TaskStatus.options).toEqual([
-      "pending", "ready", "in_progress", "completed", "failed", "blocked",
+      "pending", "ready", "in_progress", "completed", "failed", "blocked", "waiting_for_input",
     ]);
   });
 
@@ -146,7 +146,7 @@ describe("types", () => {
   });
 
   it("validates v2 enum values", () => {
-    expect(ExecutionMode.options).toEqual(["autonomous", "review_needed", "pair"]);
+    expect(ExecutionMode.options).toEqual(["autonomous", "review_needed", "pair", "collaborative"]);
     expect(TaskType.options).toEqual(["research", "coding", "writing", "ops", "mixed"]);
     expect(EstimatedEffort.options).toEqual(["small", "medium", "large"]);
   });
@@ -174,5 +174,56 @@ describe("types", () => {
       expect(result.data.execution_mode).toBeNull();
       expect(result.data.needs_research).toBe(false);
     }
+  });
+
+  // v3 tests
+  it("waiting_for_input is a valid TaskStatus", () => {
+    const result = TaskSchema.safeParse({
+      id: "task-001",
+      title: "Waiting task",
+      status: "waiting_for_input",
+      created_at: "2026-02-18T00:00:00Z",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.status).toBe("waiting_for_input");
+    }
+  });
+
+  it("collaborative is a valid ExecutionMode", () => {
+    const result = TaskSchema.safeParse({
+      id: "task-001",
+      title: "Collab task",
+      execution_mode: "collaborative",
+      created_at: "2026-02-18T00:00:00Z",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.execution_mode).toBe("collaborative");
+    }
+  });
+
+  it("TAG_CATEGORIES has correct structure", () => {
+    expect(TAG_CATEGORIES.area).toContain("openclaw");
+    expect(TAG_CATEGORIES.area).toContain("cte");
+    expect(TAG_CATEGORIES.type).toContain("research");
+    expect(TAG_CATEGORIES.type).toContain("implementation");
+    expect(TAG_CATEGORIES.tool).toContain("cc");
+    expect(TAG_CATEGORIES.tool).toContain("browser");
+  });
+
+  it("ALL_TAGS contains all tags from all categories", () => {
+    for (const tags of Object.values(TAG_CATEGORIES)) {
+      for (const tag of tags) {
+        expect(ALL_TAGS.has(tag)).toBe(true);
+      }
+    }
+  });
+
+  it("categorizeTag returns correct category", () => {
+    expect(categorizeTag("openclaw")).toBe("area");
+    expect(categorizeTag("research")).toBe("type");
+    expect(categorizeTag("cc")).toBe("tool");
+    expect(categorizeTag("unknown-tag")).toBe("other");
   });
 });

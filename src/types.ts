@@ -7,13 +7,14 @@ export const TaskStatus = z.enum([
   "completed",
   "failed",
   "blocked",
+  "waiting_for_input",
 ]);
 export type TaskStatus = z.infer<typeof TaskStatus>;
 
 export const Priority = z.enum(["P1", "P2", "P3", "P4"]);
 export type Priority = z.infer<typeof Priority>;
 
-export const ExecutionMode = z.enum(["autonomous", "review_needed", "pair"]);
+export const ExecutionMode = z.enum(["autonomous", "review_needed", "pair", "collaborative"]);
 export type ExecutionMode = z.infer<typeof ExecutionMode>;
 
 export const TaskType = z.enum(["research", "coding", "writing", "ops", "mixed"]);
@@ -74,3 +75,24 @@ export type Result<T, E = string> =
 
 export const ok = <T>(value: T): Result<T, never> => ({ ok: true, value });
 export const err = <E>(error: E): Result<never, E> => ({ ok: false, error });
+
+export const TAG_CATEGORIES = {
+  area: ['openclaw', 'cte', 'negocio', 'universidad', 'personal', 'infra'],
+  type: ['research', 'implementation', 'fix', 'improvement', 'exploration'],
+  tool: ['cc', 'browser', 'night-worker', 'mem0', 'tts'],
+} as const;
+
+export type TagCategory = keyof typeof TAG_CATEGORIES | "other";
+
+export const ALL_TAGS = new Set(
+  Object.values(TAG_CATEGORIES).flatMap((tags) => [...tags])
+);
+
+export function categorizeTag(tag: string): TagCategory {
+  for (const [category, tags] of Object.entries(TAG_CATEGORIES)) {
+    if ((tags as readonly string[]).includes(tag)) {
+      return category as keyof typeof TAG_CATEGORIES;
+    }
+  }
+  return "other";
+}

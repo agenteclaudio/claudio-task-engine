@@ -326,6 +326,37 @@ describe("CLI: v2 new flags", () => {
   });
 });
 
+describe("CLI: v3 collaborative and waiting_for_input", () => {
+  it("add with --execution-mode collaborative sets the field", () => {
+    const result = runCli(["add", "Collab task", "--execution-mode", "collaborative"], storePath());
+    expect(result.ok).toBe(true);
+    const store = JSON.parse(fs.readFileSync(storePath(), "utf-8"));
+    expect(store.tasks[0].execution_mode).toBe("collaborative");
+  });
+
+  it("update --status waiting_for_input sets the status", () => {
+    runCli(["add", "Waiting task"], storePath());
+    runCli(["update", "task-001", "--status", "in_progress"], storePath());
+    const result = runCli(["update", "task-001", "--status", "waiting_for_input"], storePath());
+    expect(result.ok).toBe(true);
+    const store = JSON.parse(fs.readFileSync(storePath(), "utf-8"));
+    expect(store.tasks[0].status).toBe("waiting_for_input");
+  });
+
+  it("list --status waiting_for_input filters correctly", () => {
+    runCli(["add", "Task A"], storePath());
+    runCli(["add", "Task B"], storePath());
+    runCli(["update", "task-001", "--status", "in_progress"], storePath());
+    runCli(["update", "task-001", "--status", "waiting_for_input"], storePath());
+    const result = runCli(["list", "--status", "waiting_for_input"], storePath());
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toContain("Task A");
+      expect(result.value).not.toContain("Task B");
+    }
+  });
+});
+
 describe("CLI: error handling", () => {
   it("returns error for unknown command", () => {
     const result = runCli(["unknown"], storePath());
