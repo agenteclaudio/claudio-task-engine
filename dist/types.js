@@ -8,6 +8,9 @@ export const TaskStatus = z.enum([
     "blocked",
 ]);
 export const Priority = z.enum(["P1", "P2", "P3", "P4"]);
+export const ExecutionMode = z.enum(["autonomous", "review_needed", "pair"]);
+export const TaskType = z.enum(["research", "coding", "writing", "ops", "mixed"]);
+export const EstimatedEffort = z.enum(["small", "medium", "large"]);
 export const TaskSchema = z.object({
     id: z.string(),
     title: z.string(),
@@ -23,6 +26,11 @@ export const TaskSchema = z.object({
     assignee: z.string().nullable().default(null),
     result: z.string().nullable().default(null),
     failure_reason: z.string().nullable().default(null),
+    execution_mode: ExecutionMode.nullable().default(null),
+    task_type: TaskType.nullable().default(null),
+    workdir: z.string().nullable().default(null),
+    needs_research: z.boolean().default(false),
+    estimated_effort: EstimatedEffort.nullable().default(null),
 });
 export const ProjectSchema = z.object({
     id: z.string(),

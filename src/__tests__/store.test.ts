@@ -322,3 +322,87 @@ describe("deleteTask", () => {
     expect(result.ok).toBe(false);
   });
 });
+
+describe("v2 fields", () => {
+  it("addTask stores new v2 fields", () => {
+    const result = addTask(emptyStore, {
+      title: "V2 task",
+      execution_mode: "autonomous",
+      task_type: "coding",
+      workdir: "/home/user/project",
+      needs_research: true,
+      estimated_effort: "large",
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const task = result.value.tasks[0];
+      expect(task.execution_mode).toBe("autonomous");
+      expect(task.task_type).toBe("coding");
+      expect(task.workdir).toBe("/home/user/project");
+      expect(task.needs_research).toBe(true);
+      expect(task.estimated_effort).toBe("large");
+    }
+  });
+
+  it("addTask defaults new fields when not provided", () => {
+    const result = addTask(emptyStore, { title: "Simple task" });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const task = result.value.tasks[0];
+      expect(task.execution_mode).toBeNull();
+      expect(task.task_type).toBeNull();
+      expect(task.workdir).toBeNull();
+      expect(task.needs_research).toBe(false);
+      expect(task.estimated_effort).toBeNull();
+    }
+  });
+
+  it("updateTask can update new v2 fields", () => {
+    const addResult = addTask(emptyStore, { title: "Task to update" });
+    expect(addResult.ok).toBe(true);
+    if (!addResult.ok) return;
+
+    const result = updateTask(addResult.value, "task-001", {
+      execution_mode: "pair",
+      task_type: "ops",
+      estimated_effort: "small",
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.tasks[0].execution_mode).toBe("pair");
+      expect(result.value.tasks[0].task_type).toBe("ops");
+      expect(result.value.tasks[0].estimated_effort).toBe("small");
+    }
+  });
+
+  it("backward compatibility: store without new fields loads correctly", () => {
+    const p = tmpFile("legacy.json");
+    const legacyStore = {
+      tasks: [{
+        id: "task-001",
+        title: "Legacy task",
+        description: null,
+        status: "pending",
+        priority: "P2",
+        dependencies: [],
+        tags: [],
+        project: null,
+        created_at: "2026-01-01T00:00:00Z",
+        started_at: null,
+        completed_at: null,
+        assignee: null,
+        result: null,
+        failure_reason: null,
+      }],
+      projects: [{ id: "personal", name: "Personal", color: "#4A90D9" }],
+    };
+    fs.writeFileSync(p, JSON.stringify(legacyStore));
+    const result = loadStore(p);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.tasks[0].execution_mode).toBeNull();
+      expect(result.value.tasks[0].needs_research).toBe(false);
+      expect(result.value.tasks[0].estimated_effort).toBeNull();
+    }
+  });
+});

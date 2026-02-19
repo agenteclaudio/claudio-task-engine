@@ -71,6 +71,11 @@ export type AddTaskInput = {
   dependencies?: string[];
   tags?: string[];
   project?: string | null;
+  execution_mode?: "autonomous" | "review_needed" | "pair" | null;
+  task_type?: "research" | "coding" | "writing" | "ops" | "mixed" | null;
+  workdir?: string | null;
+  needs_research?: boolean;
+  estimated_effort?: "small" | "medium" | "large" | null;
 };
 
 export function addTask(store: TaskStore, input: AddTaskInput): Result<TaskStore> {
@@ -103,13 +108,18 @@ export function addTask(store: TaskStore, input: AddTaskInput): Result<TaskStore
     assignee: null,
     result: null,
     failure_reason: null,
+    execution_mode: input.execution_mode ?? null,
+    task_type: input.task_type ?? null,
+    workdir: input.workdir ?? null,
+    needs_research: input.needs_research ?? false,
+    estimated_effort: input.estimated_effort ?? null,
   };
 
   return ok({ ...store, tasks: [...store.tasks, task] });
 }
 
 export type UpdateTaskInput = Partial<
-  Pick<Task, "title" | "description" | "status" | "priority" | "tags" | "project" | "result" | "failure_reason" | "assignee">
+  Pick<Task, "title" | "description" | "status" | "priority" | "tags" | "project" | "result" | "failure_reason" | "assignee" | "execution_mode" | "task_type" | "workdir" | "needs_research" | "estimated_effort">
 >;
 
 export function updateTask(store: TaskStore, id: string, updates: UpdateTaskInput): Result<TaskStore> {

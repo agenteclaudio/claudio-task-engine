@@ -88,6 +88,11 @@ export function addTask(store, input) {
         assignee: null,
         result: null,
         failure_reason: null,
+        execution_mode: input.execution_mode ?? null,
+        task_type: input.task_type ?? null,
+        workdir: input.workdir ?? null,
+        needs_research: input.needs_research ?? false,
+        estimated_effort: input.estimated_effort ?? null,
     };
     return ok({ ...store, tasks: [...store.tasks, task] });
 }

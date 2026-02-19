@@ -15,6 +15,26 @@ export declare const Priority: z.ZodEnum<{
     P4: "P4";
 }>;
 export type Priority = z.infer<typeof Priority>;
+export declare const ExecutionMode: z.ZodEnum<{
+    autonomous: "autonomous";
+    review_needed: "review_needed";
+    pair: "pair";
+}>;
+export type ExecutionMode = z.infer<typeof ExecutionMode>;
+export declare const TaskType: z.ZodEnum<{
+    research: "research";
+    coding: "coding";
+    writing: "writing";
+    ops: "ops";
+    mixed: "mixed";
+}>;
+export type TaskType = z.infer<typeof TaskType>;
+export declare const EstimatedEffort: z.ZodEnum<{
+    small: "small";
+    medium: "medium";
+    large: "large";
+}>;
+export type EstimatedEffort = z.infer<typeof EstimatedEffort>;
 export declare const TaskSchema: z.ZodObject<{
     id: z.ZodString;
     title: z.ZodString;
@@ -42,6 +62,25 @@ export declare const TaskSchema: z.ZodObject<{
     assignee: z.ZodDefault<z.ZodNullable<z.ZodString>>;
     result: z.ZodDefault<z.ZodNullable<z.ZodString>>;
     failure_reason: z.ZodDefault<z.ZodNullable<z.ZodString>>;
+    execution_mode: z.ZodDefault<z.ZodNullable<z.ZodEnum<{
+        autonomous: "autonomous";
+        review_needed: "review_needed";
+        pair: "pair";
+    }>>>;
+    task_type: z.ZodDefault<z.ZodNullable<z.ZodEnum<{
+        research: "research";
+        coding: "coding";
+        writing: "writing";
+        ops: "ops";
+        mixed: "mixed";
+    }>>>;
+    workdir: z.ZodDefault<z.ZodNullable<z.ZodString>>;
+    needs_research: z.ZodDefault<z.ZodBoolean>;
+    estimated_effort: z.ZodDefault<z.ZodNullable<z.ZodEnum<{
+        small: "small";
+        medium: "medium";
+        large: "large";
+    }>>>;
 }, z.core.$strip>;
 export type Task = z.infer<typeof TaskSchema>;
 export declare const ProjectSchema: z.ZodObject<{
@@ -78,6 +117,25 @@ export declare const TaskStoreSchema: z.ZodObject<{
         assignee: z.ZodDefault<z.ZodNullable<z.ZodString>>;
         result: z.ZodDefault<z.ZodNullable<z.ZodString>>;
         failure_reason: z.ZodDefault<z.ZodNullable<z.ZodString>>;
+        execution_mode: z.ZodDefault<z.ZodNullable<z.ZodEnum<{
+            autonomous: "autonomous";
+            review_needed: "review_needed";
+            pair: "pair";
+        }>>>;
+        task_type: z.ZodDefault<z.ZodNullable<z.ZodEnum<{
+            research: "research";
+            coding: "coding";
+            writing: "writing";
+            ops: "ops";
+            mixed: "mixed";
+        }>>>;
+        workdir: z.ZodDefault<z.ZodNullable<z.ZodString>>;
+        needs_research: z.ZodDefault<z.ZodBoolean>;
+        estimated_effort: z.ZodDefault<z.ZodNullable<z.ZodEnum<{
+            small: "small";
+            medium: "medium";
+            large: "large";
+        }>>>;
     }, z.core.$strip>>;
     projects: z.ZodArray<z.ZodObject<{
         id: z.ZodString;

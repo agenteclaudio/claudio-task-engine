@@ -5,7 +5,7 @@ import { generateKanban } from "./kanban.js";
 import path from "node:path";
 
 const PORT = parseInt(process.env["CTE_PORT"] ?? "8099", 10);
-const BIND = process.env["CTE_BIND"] ?? "127.0.0.1";
+const BIND = process.env["CTE_BIND"] ?? "0.0.0.0";
 const STORE_PATH = process.env["CTE_STORE"] ?? path.join(
   import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname),
   "..",

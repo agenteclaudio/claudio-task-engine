@@ -74,14 +74,14 @@ export function runCli(args: string[], storePath?: string): Result<string> {
 
 function cmdAdd(positional: string[], flags: Record<string, string>, sp: string): Result<string> {
   const title = positional[0];
-  if (!title) return err("Usage: cte add <title> [--priority P1-P4] [--project X] [--tags a,b] [--deps id1,id2] [--description text]");
+  if (!title) return err("Usage: cte add <title> [--priority P1-P4] [--project X] [--tags a,b] [--deps id1,id2] [--description text] [--execution-mode X] [--task-type X] [--workdir X] [--needs-research] [--estimated-effort X]");
 
   const storeResult = loadStore(sp);
   if (!storeResult.ok) return storeResult;
 
   const input: AddTaskInput = { title };
   const priority = flags["priority"];
-  if (priority) input.priority = priority as AddTaskInput["priority"];
+  if (priority) input.priority = priority.toUpperCase() as AddTaskInput["priority"];
   const project = flags["project"];
   if (project) input.project = project;
   const tags = flags["tags"];
@@ -90,6 +90,15 @@ function cmdAdd(positional: string[], flags: Record<string, string>, sp: string)
   if (deps) input.dependencies = deps.split(",").map((s) => s.trim());
   const description = flags["description"];
   if (description) input.description = description;
+  const executionMode = flags["execution-mode"];
+  if (executionMode) input.execution_mode = executionMode as AddTaskInput["execution_mode"];
+  const taskType = flags["task-type"];
+  if (taskType) input.task_type = taskType as AddTaskInput["task_type"];
+  const workdir = flags["workdir"];
+  if (workdir) input.workdir = workdir;
+  if (flags["needs-research"]) input.needs_research = true;
+  const estimatedEffort = flags["estimated-effort"];
+  if (estimatedEffort) input.estimated_effort = estimatedEffort as AddTaskInput["estimated_effort"];
 
   const result = addTask(storeResult.value, input);
   if (!result.ok) return result;
@@ -150,6 +159,11 @@ function cmdShow(id: string | undefined, sp: string): Result<string> {
     `Project:      ${project ? project.name : "none"} (${task.project ?? "none"})`,
     `Tags:         ${task.tags.length > 0 ? task.tags.join(", ") : "none"}`,
     `Dependencies: ${task.dependencies.length > 0 ? task.dependencies.join(", ") : "none"}`,
+    `Exec Mode:    ${task.execution_mode ?? "-"}`,
+    `Task Type:    ${task.task_type ?? "-"}`,
+    `Workdir:      ${task.workdir ?? "-"}`,
+    `Research:     ${task.needs_research ? "yes" : "no"}`,
+    `Effort:       ${task.estimated_effort ?? "-"}`,
     `Created:      ${task.created_at}`,
     `Started:      ${task.started_at ?? "-"}`,
     `Completed:    ${task.completed_at ?? "-"}`,
@@ -162,7 +176,7 @@ function cmdShow(id: string | undefined, sp: string): Result<string> {
 }
 
 function cmdUpdate(id: string | undefined, flags: Record<string, string>, sp: string): Result<string> {
-  if (!id) return err("Usage: cte update <id> [--status X] [--priority X] [--result text]");
+  if (!id) return err("Usage: cte update <id> [--status X] [--priority X] [--result text] [--execution-mode X] [--task-type X] [--workdir X] [--needs-research] [--estimated-effort X]");
 
   const storeResult = loadStore(sp);
   if (!storeResult.ok) return storeResult;
@@ -171,7 +185,7 @@ function cmdUpdate(id: string | undefined, flags: Record<string, string>, sp: st
   const status = flags["status"];
   if (status) updates.status = status as UpdateTaskInput["status"];
   const priority = flags["priority"];
-  if (priority) updates.priority = priority as UpdateTaskInput["priority"];
+  if (priority) updates.priority = priority.toUpperCase() as UpdateTaskInput["priority"];
   const resultFlag = flags["result"];
   if (resultFlag) updates.result = resultFlag;
   const failureReason = flags["failure_reason"];
@@ -186,6 +200,15 @@ function cmdUpdate(id: string | undefined, flags: Record<string, string>, sp: st
   if (project) updates.project = project;
   const tagsStr = flags["tags"];
   if (tagsStr) updates.tags = tagsStr.split(",").map((s) => s.trim());
+  const executionMode = flags["execution-mode"];
+  if (executionMode) updates.execution_mode = executionMode as UpdateTaskInput["execution_mode"];
+  const taskType = flags["task-type"];
+  if (taskType) updates.task_type = taskType as UpdateTaskInput["task_type"];
+  const workdir = flags["workdir"];
+  if (workdir) updates.workdir = workdir;
+  if (flags["needs-research"]) updates.needs_research = true;
+  const estimatedEffort = flags["estimated-effort"];
+  if (estimatedEffort) updates.estimated_effort = estimatedEffort as UpdateTaskInput["estimated_effort"];
 
   const updateResult = updateTask(storeResult.value, id, updates);
   if (!updateResult.ok) return updateResult;

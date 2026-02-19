@@ -223,6 +223,109 @@ describe("CLI: stats", () => {
   });
 });
 
+describe("CLI: priority normalization", () => {
+  it("normalizes lowercase priority p2 to P2 on add", () => {
+    const result = runCli(["add", "Lowercase priority task", "--priority", "p2"], storePath());
+    expect(result.ok).toBe(true);
+    const store = JSON.parse(fs.readFileSync(storePath(), "utf-8"));
+    expect(store.tasks[0].priority).toBe("P2");
+  });
+
+  it("normalizes lowercase priority p1 to P1 on add", () => {
+    const result = runCli(["add", "P1 task", "--priority", "p1"], storePath());
+    expect(result.ok).toBe(true);
+    const store = JSON.parse(fs.readFileSync(storePath(), "utf-8"));
+    expect(store.tasks[0].priority).toBe("P1");
+  });
+
+  it("normalizes lowercase priority on update", () => {
+    runCli(["add", "Task"], storePath());
+    const result = runCli(["update", "task-001", "--priority", "p3"], storePath());
+    expect(result.ok).toBe(true);
+    const store = JSON.parse(fs.readFileSync(storePath(), "utf-8"));
+    expect(store.tasks[0].priority).toBe("P3");
+  });
+
+  it("list still works after adding with lowercase priority", () => {
+    runCli(["add", "Task with p2", "--priority", "p2"], storePath());
+    const result = runCli(["list"], storePath());
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toContain("Task with p2");
+      expect(result.value).toContain("P2");
+    }
+  });
+});
+
+describe("CLI: v2 new flags", () => {
+  it("add with --execution-mode sets the field", () => {
+    const result = runCli(["add", "Auto task", "--execution-mode", "autonomous"], storePath());
+    expect(result.ok).toBe(true);
+    const store = JSON.parse(fs.readFileSync(storePath(), "utf-8"));
+    expect(store.tasks[0].execution_mode).toBe("autonomous");
+  });
+
+  it("add with --task-type sets the field", () => {
+    const result = runCli(["add", "Code task", "--task-type", "coding"], storePath());
+    expect(result.ok).toBe(true);
+    const store = JSON.parse(fs.readFileSync(storePath(), "utf-8"));
+    expect(store.tasks[0].task_type).toBe("coding");
+  });
+
+  it("add with --workdir sets the field", () => {
+    const result = runCli(["add", "Project task", "--workdir", "/home/user/project"], storePath());
+    expect(result.ok).toBe(true);
+    const store = JSON.parse(fs.readFileSync(storePath(), "utf-8"));
+    expect(store.tasks[0].workdir).toBe("/home/user/project");
+  });
+
+  it("add with --needs-research sets the boolean", () => {
+    const result = runCli(["add", "Research task", "--needs-research"], storePath());
+    expect(result.ok).toBe(true);
+    const store = JSON.parse(fs.readFileSync(storePath(), "utf-8"));
+    expect(store.tasks[0].needs_research).toBe(true);
+  });
+
+  it("add with --estimated-effort sets the field", () => {
+    const result = runCli(["add", "Small task", "--estimated-effort", "small"], storePath());
+    expect(result.ok).toBe(true);
+    const store = JSON.parse(fs.readFileSync(storePath(), "utf-8"));
+    expect(store.tasks[0].estimated_effort).toBe("small");
+  });
+
+  it("update can set new v2 fields", () => {
+    runCli(["add", "Task to update"], storePath());
+    runCli(["update", "task-001", "--execution-mode", "pair", "--task-type", "ops", "--estimated-effort", "large"], storePath());
+    const store = JSON.parse(fs.readFileSync(storePath(), "utf-8"));
+    expect(store.tasks[0].execution_mode).toBe("pair");
+    expect(store.tasks[0].task_type).toBe("ops");
+    expect(store.tasks[0].estimated_effort).toBe("large");
+  });
+
+  it("show displays new v2 fields", () => {
+    runCli(["add", "Full task", "--execution-mode", "autonomous", "--task-type", "coding", "--workdir", "/tmp", "--needs-research", "--estimated-effort", "medium"], storePath());
+    const result = runCli(["show", "task-001"], storePath());
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toContain("autonomous");
+      expect(result.value).toContain("coding");
+      expect(result.value).toContain("/tmp");
+      expect(result.value).toContain("yes");
+      expect(result.value).toContain("medium");
+    }
+  });
+
+  it("new fields default to null/false when not specified", () => {
+    runCli(["add", "Simple task"], storePath());
+    const store = JSON.parse(fs.readFileSync(storePath(), "utf-8"));
+    expect(store.tasks[0].execution_mode).toBeNull();
+    expect(store.tasks[0].task_type).toBeNull();
+    expect(store.tasks[0].workdir).toBeNull();
+    expect(store.tasks[0].needs_research).toBe(false);
+    expect(store.tasks[0].estimated_effort).toBeNull();
+  });
+});
+
 describe("CLI: error handling", () => {
   it("returns error for unknown command", () => {
     const result = runCli(["unknown"], storePath());

@@ -66,14 +66,14 @@ export function runCli(args, storePath) {
 function cmdAdd(positional, flags, sp) {
     const title = positional[0];
     if (!title)
-        return err("Usage: cte add <title> [--priority P1-P4] [--project X] [--tags a,b] [--deps id1,id2] [--description text]");
+        return err("Usage: cte add <title> [--priority P1-P4] [--project X] [--tags a,b] [--deps id1,id2] [--description text] [--execution-mode X] [--task-type X] [--workdir X] [--needs-research] [--estimated-effort X]");
     const storeResult = loadStore(sp);
     if (!storeResult.ok)
         return storeResult;
     const input = { title };
     const priority = flags["priority"];
     if (priority)
-        input.priority = priority;
+        input.priority = priority.toUpperCase();
     const project = flags["project"];
     if (project)
         input.project = project;
@@ -86,6 +86,20 @@ function cmdAdd(positional, flags, sp) {
     const description = flags["description"];
     if (description)
         input.description = description;
+    const executionMode = flags["execution-mode"];
+    if (executionMode)
+        input.execution_mode = executionMode;
+    const taskType = flags["task-type"];
+    if (taskType)
+        input.task_type = taskType;
+    const workdir = flags["workdir"];
+    if (workdir)
+        input.workdir = workdir;
+    if (flags["needs-research"])
+        input.needs_research = true;
+    const estimatedEffort = flags["estimated-effort"];
+    if (estimatedEffort)
+        input.estimated_effort = estimatedEffort;
     const result = addTask(storeResult.value, input);
     if (!result.ok)
         return result;
@@ -138,6 +152,11 @@ function cmdShow(id, sp) {
         `Project:      ${project ? project.name : "none"} (${task.project ?? "none"})`,
         `Tags:         ${task.tags.length > 0 ? task.tags.join(", ") : "none"}`,
         `Dependencies: ${task.dependencies.length > 0 ? task.dependencies.join(", ") : "none"}`,
+        `Exec Mode:    ${task.execution_mode ?? "-"}`,
+        `Task Type:    ${task.task_type ?? "-"}`,
+        `Workdir:      ${task.workdir ?? "-"}`,
+        `Research:     ${task.needs_research ? "yes" : "no"}`,
+        `Effort:       ${task.estimated_effort ?? "-"}`,
         `Created:      ${task.created_at}`,
         `Started:      ${task.started_at ?? "-"}`,
         `Completed:    ${task.completed_at ?? "-"}`,
@@ -150,7 +169,7 @@ function cmdShow(id, sp) {
 }
 function cmdUpdate(id, flags, sp) {
     if (!id)
-        return err("Usage: cte update <id> [--status X] [--priority X] [--result text]");
+        return err("Usage: cte update <id> [--status X] [--priority X] [--result text] [--execution-mode X] [--task-type X] [--workdir X] [--needs-research] [--estimated-effort X]");
     const storeResult = loadStore(sp);
     if (!storeResult.ok)
         return storeResult;
@@ -160,7 +179,7 @@ function cmdUpdate(id, flags, sp) {
         updates.status = status;
     const priority = flags["priority"];
     if (priority)
-        updates.priority = priority;
+        updates.priority = priority.toUpperCase();
     const resultFlag = flags["result"];
     if (resultFlag)
         updates.result = resultFlag;
@@ -182,6 +201,20 @@ function cmdUpdate(id, flags, sp) {
     const tagsStr = flags["tags"];
     if (tagsStr)
         updates.tags = tagsStr.split(",").map((s) => s.trim());
+    const executionMode = flags["execution-mode"];
+    if (executionMode)
+        updates.execution_mode = executionMode;
+    const taskType = flags["task-type"];
+    if (taskType)
+        updates.task_type = taskType;
+    const workdir = flags["workdir"];
+    if (workdir)
+        updates.workdir = workdir;
+    if (flags["needs-research"])
+        updates.needs_research = true;
+    const estimatedEffort = flags["estimated-effort"];
+    if (estimatedEffort)
+        updates.estimated_effort = estimatedEffort;
     const updateResult = updateTask(storeResult.value, id, updates);
     if (!updateResult.ok)
         return updateResult;

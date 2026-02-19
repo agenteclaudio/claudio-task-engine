@@ -17,6 +17,11 @@ function makeTask(overrides: Partial<Task> & { id: string }): Task {
     assignee: null,
     result: null,
     failure_reason: null,
+    execution_mode: null,
+    task_type: null,
+    workdir: null,
+    needs_research: false,
+    estimated_effort: null,
     ...overrides,
   };
 }
@@ -114,8 +119,104 @@ describe("generateKanban", () => {
   it("has dark mode styles", () => {
     const store: TaskStore = { tasks: [], projects };
     const html = generateKanban(store);
-    // Dark mode should have dark background colors
-    expect(html).toContain("background");
-    expect(html).toContain("#");
+    expect(html).toContain("#0f172a");
+    expect(html).toContain("#1e293b");
+  });
+
+  it("has responsive viewport meta tag", () => {
+    const store: TaskStore = { tasks: [], projects };
+    const html = generateKanban(store);
+    expect(html).toContain('name="viewport"');
+    expect(html).toContain("width=device-width");
+  });
+
+  it("has responsive CSS media queries", () => {
+    const store: TaskStore = { tasks: [], projects };
+    const html = generateKanban(store);
+    expect(html).toContain("@media");
+    expect(html).toContain("640px");
+    expect(html).toContain("1024px");
+  });
+
+  it("has task detail modal markup", () => {
+    const store: TaskStore = { tasks: [], projects };
+    const html = generateKanban(store);
+    expect(html).toContain("modal-overlay");
+    expect(html).toContain("modal-body");
+    expect(html).toContain("showModal");
+    expect(html).toContain("closeModal");
+  });
+
+  it("renders new v2 fields on cards when present", () => {
+    const store: TaskStore = {
+      tasks: [makeTask({
+        id: "task-001",
+        title: "V2 task",
+        execution_mode: "autonomous",
+        task_type: "coding",
+        estimated_effort: "large",
+        needs_research: true,
+      })],
+      projects,
+    };
+    const html = generateKanban(store);
+    expect(html).toContain("autonomous");
+    expect(html).toContain("mode-autonomous");
+    expect(html).toContain("effort-large");
+    expect(html).toContain("research-badge");
+  });
+
+  it("has filter buttons for priority", () => {
+    const store: TaskStore = { tasks: [], projects };
+    const html = generateKanban(store);
+    expect(html).toContain("data-filter-priority");
+    expect(html).toContain("P1");
+    expect(html).toContain("P2");
+  });
+
+  it("has filter buttons for execution_mode when tasks have modes", () => {
+    const store: TaskStore = {
+      tasks: [makeTask({ id: "task-001", title: "Auto", execution_mode: "autonomous" })],
+      projects,
+    };
+    const html = generateKanban(store);
+    expect(html).toContain("data-filter-execution-mode");
+    expect(html).toContain("autonomous");
+  });
+
+  it("has stats section with task counts", () => {
+    const store: TaskStore = {
+      tasks: [
+        makeTask({ id: "task-001", title: "A", status: "pending" }),
+        makeTask({ id: "task-002", title: "B", status: "completed" }),
+      ],
+      projects,
+    };
+    const html = generateKanban(store);
+    expect(html).toContain("stats");
+    expect(html).toContain("progress-bar");
+    expect(html).toContain("50%");
+  });
+
+  it("has auto-refresh mechanism", () => {
+    const store: TaskStore = { tasks: [], projects };
+    const html = generateKanban(store);
+    expect(html).toContain("setTimeout");
+    expect(html).toContain("reload");
+  });
+
+  it("escapes HTML in new v2 fields", () => {
+    const store: TaskStore = {
+      tasks: [makeTask({
+        id: "task-001",
+        title: "XSS test",
+        workdir: "</script><script>alert(1)</script>",
+        execution_mode: "autonomous",
+      })],
+      projects,
+    };
+    const html = generateKanban(store);
+    expect(html).not.toContain("</script><script>alert(1)</script>");
+    expect(html).toContain("&lt;/script&gt;");
   });
 });

@@ -8,8 +8,13 @@ export type AddTaskInput = {
     dependencies?: string[];
     tags?: string[];
     project?: string | null;
+    execution_mode?: "autonomous" | "review_needed" | "pair" | null;
+    task_type?: "research" | "coding" | "writing" | "ops" | "mixed" | null;
+    workdir?: string | null;
+    needs_research?: boolean;
+    estimated_effort?: "small" | "medium" | "large" | null;
 };
 export declare function addTask(store: TaskStore, input: AddTaskInput): Result<TaskStore>;
-export type UpdateTaskInput = Partial<Pick<Task, "title" | "description" | "status" | "priority" | "tags" | "project" | "result" | "failure_reason" | "assignee">>;
+export type UpdateTaskInput = Partial<Pick<Task, "title" | "description" | "status" | "priority" | "tags" | "project" | "result" | "failure_reason" | "assignee" | "execution_mode" | "task_type" | "workdir" | "needs_research" | "estimated_effort">>;
 export declare function updateTask(store: TaskStore, id: string, updates: UpdateTaskInput): Result<TaskStore>;
 export declare function deleteTask(store: TaskStore, id: string): Result<TaskStore>;
