@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claudio Task Engine — Kanban</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <div class="logo">⚡</div>
+    <h1>Claudio <span class="accent">Task Engine</span></h1>
+  </div>
+  <div class="filters">
+    <select id="filter-project"><option value="">All Projects</option></select>
+    <select id="filter-priority"><option value="">All Priorities</option></select>
+    <select id="filter-status"><option value="">All Statuses</option></select>
+  </div>
+</header>
+<main id="board"></main>
+<script src="app.js"></script>
+</body>
+</html>
