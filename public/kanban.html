@@ -1,927 +1,246 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CTE Kanban</title>
+<title>CTE Kanban — Claudio Task Engine</title>
 <style>
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-  :root {
-    --bg-base: #0f172a;
-    --bg-surface: #1e293b;
-    --bg-elevated: #334155;
-    --border: #334155;
-    --border-subtle: #1e293b;
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    --accent: #6366f1;
-    --accent-glow: rgba(99, 102, 241, 0.15);
-  }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg-base);
-    color: var(--text-primary);
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* Header */
-  .header {
-    padding: 20px 24px;
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .header h1 {
-    font-size: 22px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #818cf8, #6366f1);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: -0.5px;
-  }
-  .header-time { font-size: 12px; color: var(--text-muted); }
-
-  /* Stats */
-  .stats {
-    padding: 16px 24px;
-    background: var(--bg-surface);
-    border-bottom: 1px solid var(--border);
-  }
-  .stats-row {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .stat-item { text-align: center; }
-  .stat-value { font-size: 20px; font-weight: 700; display: block; }
-  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .progress-bar-container {
-    height: 6px;
-    background: var(--bg-base);
-    border-radius: 3px;
-    overflow: hidden;
-    position: relative;
-    margin-bottom: 10px;
-  }
-  .progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #22c55e, #4ade80);
-    border-radius: 3px;
-    transition: width 0.6s ease;
-  }
-  .progress-label {
-    font-size: 11px;
-    color: var(--text-muted);
-    position: absolute;
-    right: 0;
-    top: 10px;
-  }
-  .priority-stats { margin-top: 8px; margin-bottom: 0; gap: 16px; }
-  .priority-stat { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
-  .priority-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-
-  /* Filters */
-  .filters {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    padding: 12px 24px;
-    background: var(--bg-base);
-    border-bottom: 1px solid var(--border);
-    align-items: center;
-  }
-  .filter-group { display: flex; gap: 6px; align-items: center; margin-right: 8px; }
-  .filter-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-right: 2px; white-space: nowrap; }
-  .filter-btn {
-    padding: 4px 12px;
-    border-radius: 14px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-size: 12px;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-  }
-  .filter-btn:hover { background: var(--bg-elevated); color: var(--text-primary); border-color: var(--accent); }
-  .filter-btn.active { background: var(--accent-glow); color: #818cf8; border-color: var(--accent); }
-  .filter-btn .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
-
-  /* Board */
-  .board {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-    padding: 16px 24px;
-    min-height: calc(100vh - 240px);
-  }
-
-  /* Column */
-  .column {
-    background: var(--bg-surface);
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    border: 1px solid var(--border);
-    min-width: 0;
-  }
-  .column-header {
-    padding: 14px 16px;
-    font-weight: 600;
-    font-size: 13px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .column-header .count {
-    background: var(--bg-elevated);
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 11px;
-    color: var(--text-muted);
-    font-weight: 500;
-  }
-  .column-body {
-    padding: 8px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow-y: auto;
-  }
-
-  /* Card */
-  .card {
-    background: var(--bg-base);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-  }
-  .card:hover {
-    border-color: var(--accent);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3), 0 0 0 1px var(--accent-glow);
-  }
-  .card-header { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
-  .priority-badge {
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 10px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: 0.5px;
-  }
-  .mode-badge {
-    padding: 2px 6px;
-    border-radius: 6px;
-    font-size: 9px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-  }
-  .mode-autonomous { background: rgba(34,197,94,0.2); color: #4ade80; }
-  .mode-review_needed { background: rgba(245,158,11,0.2); color: #fbbf24; }
-  .mode-pair { background: rgba(168,85,247,0.2); color: #c084fc; }
-  .task-id { font-size: 11px; color: var(--text-muted); margin-left: auto; }
-  .card-title { font-size: 13px; font-weight: 500; margin-bottom: 8px; line-height: 1.4; }
-  .card-meta { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
-  .type-icon { font-size: 14px; }
-  .effort-chip {
-    font-size: 10px;
-    font-weight: 700;
-    padding: 1px 6px;
-    border-radius: 4px;
-    letter-spacing: 0.5px;
-  }
-  .effort-small { background: rgba(34,197,94,0.2); color: #4ade80; }
-  .effort-medium { background: rgba(245,158,11,0.2); color: #fbbf24; }
-  .effort-large { background: rgba(239,68,68,0.2); color: #f87171; }
-  .research-badge { font-size: 12px; }
-  .card-project { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
-  .project-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .card-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
-  .tag {
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    background: var(--bg-elevated);
-    color: var(--text-secondary);
-  }
-  .card-deps { font-size: 11px; color: var(--text-muted); }
-
-  /* Modal */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-    padding: 24px;
-    animation: fadeIn 0.2s ease;
-  }
-  .modal-overlay.active { display: flex; }
-  .modal {
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    max-width: 560px;
-    width: 100%;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 24px 48px rgba(0,0,0,0.5);
-    animation: slideUp 0.25s ease;
-  }
-  .modal-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-  .modal-header h2 { font-size: 18px; font-weight: 600; line-height: 1.4; flex: 1; }
-  .modal-close {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 20px;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 6px;
-    transition: all 0.15s;
-    margin-left: 16px;
-    flex-shrink: 0;
-  }
-  .modal-close:hover { background: var(--bg-elevated); color: var(--text-primary); }
-  .modal-body { padding: 20px 24px; }
-  .modal-field { margin-bottom: 14px; }
-  .modal-field-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-  .modal-field-value { font-size: 14px; color: var(--text-primary); line-height: 1.5; }
-  .modal-field-value.muted { color: var(--text-muted); }
-  .modal-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-  .modal-badges .priority-badge { font-size: 12px; padding: 3px 10px; }
-
-  /* Responsive */
-  @media (max-width: 1024px) {
-    .board { grid-template-columns: repeat(3, 1fr); overflow-x: auto; }
-  }
-  @media (max-width: 640px) {
-    .board { grid-template-columns: 1fr; }
-    .stats-row { gap: 12px; }
-    .filters { padding: 10px 16px; }
-    .header { padding: 16px; }
-    .board { padding: 12px 16px; }
-    .modal { max-width: 100%; margin: 12px; border-radius: 12px; }
-  }
-
-  /* Animations */
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
+  body { background:#0F172A; color:#E2E8F0; font-family:Inter,-apple-system,sans-serif; margin:0; padding:24px; }
+  @media(max-width:768px) { body { padding:12px; } }
 </style>
 </head>
 <body>
-<div class="header">
-  <h1>CTE Kanban</h1>
-  <span class="header-time" id="last-updated"></span>
-</div>
-
-  <div class="stats">
-    <div class="stats-row">
-      <div class="stat-item">
-        <span class="stat-value">24</span>
-        <span class="stat-label">Total</span>
-      </div>
-      <div class="stat-item">
-          <span class="stat-value" style="color:#64748b">0</span>
-          <span class="stat-label">Backlog</span>
-        </div><div class="stat-item">
-          <span class="stat-value" style="color:#22d3ee">17</span>
-          <span class="stat-label">Ready</span>
-        </div><div class="stat-item">
-          <span class="stat-value" style="color:#f59e0b">1</span>
-          <span class="stat-label">In Progress</span>
-        </div><div class="stat-item">
-          <span class="stat-value" style="color:#22c55e">6</span>
-          <span class="stat-label">Done</span>
-        </div><div class="stat-item">
-          <span class="stat-value" style="color:#ef4444">0</span>
-          <span class="stat-label">Failed</span>
-        </div>
+<div style="max-width:1400px;margin:0 auto;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1 style="margin:0;font-size:24px;color:#FBBF24;">🦉 CTE Kanban</h1>
+      <p style="margin:4px 0 0;color:#64748B;font-size:13px;">Claudio Task Engine — 92 tasks total, 88 completed</p>
     </div>
-    <div class="progress-bar-container">
-      <div class="progress-bar" style="width:25%"></div>
-      <span class="progress-label">25% complete</span>
-    </div>
-    <div class="stats-row priority-stats">
-      <span class="priority-stat"><span class="priority-dot" style="background:#ef4444"></span>P1: 0</span><span class="priority-stat"><span class="priority-dot" style="background:#f59e0b"></span>P2: 11</span><span class="priority-stat"><span class="priority-dot" style="background:#3b82f6"></span>P3: 8</span><span class="priority-stat"><span class="priority-dot" style="background:#64748b"></span>P4: 5</span>
-    </div>
+    <div style="color:#64748B;font-size:12px;">Updated: Mar 6, 2026</div>
   </div>
-<div class="filters">
-  <div class="filter-group">
-    <span class="filter-label">Project</span>
-    
-  </div>
-  <div class="filter-group">
-    <span class="filter-label">Tags</span>
-    <button class="filter-btn" data-filter-tag="cc">cc</button>
-    <button class="filter-btn" data-filter-tag="cc-integration">cc-integration</button>
-    <button class="filter-btn" data-filter-tag="context">context</button>
-    <button class="filter-btn" data-filter-tag="cte">cte</button>
-    <button class="filter-btn" data-filter-tag="feature">feature</button>
-    <button class="filter-btn" data-filter-tag="future">future</button>
-    <button class="filter-btn" data-filter-tag="hardware">hardware</button>
-    <button class="filter-btn" data-filter-tag="headless">headless</button>
-    <button class="filter-btn" data-filter-tag="infra">infra</button>
-    <button class="filter-btn" data-filter-tag="integration">integration</button>
-    <button class="filter-btn" data-filter-tag="memory">memory</button>
-    <button class="filter-btn" data-filter-tag="night-worker">night-worker</button>
-    <button class="filter-btn" data-filter-tag="research">research</button>
-    <button class="filter-btn" data-filter-tag="tailscale">tailscale</button>
-    <button class="filter-btn" data-filter-tag="testing">testing</button>
-  </div>
-  <div class="filter-group">
-    <span class="filter-label">Priority</span>
-    <button class="filter-btn" data-filter-priority="P1"><span class="dot" style="background:#ef4444"></span>P1</button>
-    <button class="filter-btn" data-filter-priority="P2"><span class="dot" style="background:#f59e0b"></span>P2</button>
-    <button class="filter-btn" data-filter-priority="P3"><span class="dot" style="background:#3b82f6"></span>P3</button>
-    <button class="filter-btn" data-filter-priority="P4"><span class="dot" style="background:#64748b"></span>P4</button>
-  </div>
-  
-  
-</div>
-<div class="board">
-  <div class="column">
-    <div class="column-header">
-      <span style="color:#64748b">Backlog</span>
-      <span class="count">0</span>
+  <div style="display:flex;gap:20px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:280px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#3B82F6;"></div>
+        <span style="color:#E2E8F0;font-weight:600;">Ready</span>
+        <span style="color:#64748B;font-size:12px;">(3)</span>
+      </div>
+      <div style="background:#1E293B;border-left:3px solid #3B82F6;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-064</span>
+        <span style="background:#FBBF24;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P2</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Finalizar schedule de entrenamiento: dojo No-Gi + gym, validar con Pablo</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">personal</div>
     </div>
-    <div class="column-body">
-      
+<div style="background:#1E293B;border-left:3px solid #3B82F6;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-065</span>
+        <span style="background:#FBBF24;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P2</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Diseñar rutina gym para Pablo: 2-3x semana, coordinar con dojo</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">personal</div>
     </div>
-  </div>
-  <div class="column">
-    <div class="column-header">
-      <span style="color:#22d3ee">Ready</span>
-      <span class="count">17</span>
-    </div>
-    <div class="column-body">
-      
-    <div class="card" data-project="openclaw-setup" data-tags="memory" data-priority="P3" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-004&quot;,&quot;title&quot;:&quot;Monitorear adherencia de memory_search&quot;,&quot;description&quot;:&quot;¿Lo uso consistentemente? ¿Encuentra lo que busca? Research doc de 977 líneas puede no indexarse bien&quot;,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P3&quot;,&quot;project&quot;:&quot;openclaw-setup&quot;,&quot;tags&quot;:[&quot;memory&quot;],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-16T14:46:31.616Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:&quot;2026-02-18T05:02:55.639Z&quot;,&quot;assignee&quot;:null,&quot;result&quot;:&quot;Reporte en ~/projects/research/memory-search-monitoring.md. Mem0 muy nuevo (27h), docs grandes no indexados, 352 facts de Hindsight perdidos. Rec: ingestar archivos clave, splitear docs grandes.&quot;,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #3b82f6">P3</span>
-        
-        <span class="task-id">task-004</span>
+<div style="background:#1E293B;border-left:3px solid #3B82F6;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-089</span>
+        <span style="background:#6B7280;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P4</span>
       </div>
-      <div class="card-title">Monitorear adherencia de memory_search</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      <div class="card-tags"><span class="tag">memory</span></div>
-      
-    </div>
-      
-    <div class="card" data-project="openclaw-setup" data-tags="memory,research" data-priority="P4" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-006&quot;,&quot;title&quot;:&quot;Investigar otros sistemas de memoria&quot;,&quot;description&quot;:&quot;MCP-based (Memory Palace/SQLite), knowledge graphs, alternativas a flat files&quot;,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P4&quot;,&quot;project&quot;:&quot;openclaw-setup&quot;,&quot;tags&quot;:[&quot;memory&quot;,&quot;research&quot;],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-16T14:46:31.783Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:&quot;2026-02-18T05:02:41.642Z&quot;,&quot;assignee&quot;:null,&quot;result&quot;:&quot;Comparativa en ~/projects/research/memory-systems-comparison.md. Recomendación: SQLite+FTS5 reemplaza Qdrant para &lt;10K entries.&quot;,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #64748b">P4</span>
-        
-        <span class="task-id">task-006</span>
-      </div>
-      <div class="card-title">Investigar otros sistemas de memoria</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      <div class="card-tags"><span class="tag">memory</span><span class="tag">research</span></div>
-      
-    </div>
-      
-    <div class="card" data-project="openclaw-setup" data-tags="feature" data-priority="P4" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-008&quot;,&quot;title&quot;:&quot;Implementar Talk mode&quot;,&quot;description&quot;:&quot;Parear iPhone como node + ElevenLabs API key para conversación por voz&quot;,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P4&quot;,&quot;project&quot;:&quot;openclaw-setup&quot;,&quot;tags&quot;:[&quot;feature&quot;],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-16T14:46:31.949Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:&quot;2026-02-18T05:02:41.746Z&quot;,&quot;assignee&quot;:null,&quot;result&quot;:&quot;Plan en docs/tasks/task-008-talk-mode-plan.md. Arquitectura: PWA + Groq STT + Kokoro TTS. Effort: 4-7 días. Costo: /bin/bash/mes local.&quot;,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #64748b">P4</span>
-        
-        <span class="task-id">task-008</span>
-      </div>
-      <div class="card-title">Implementar Talk mode</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      <div class="card-tags"><span class="tag">feature</span></div>
-      
-    </div>
-      
-    <div class="card" data-project="" data-tags="" data-priority="P3" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-009&quot;,&quot;title&quot;:&quot;Configurar sudoers NOPASSWD para Claudio&quot;,&quot;description&quot;:&quot;Agregar regla sudoers para que blito pueda ejecutar apt/dpkg sin password, permitiendo que Claudio instale paquetes autónomamente.&quot;,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P3&quot;,&quot;project&quot;:null,&quot;tags&quot;:[],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-16T16:54:43.917Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:null,&quot;assignee&quot;:null,&quot;result&quot;:null,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #3b82f6">P3</span>
-        
-        <span class="task-id">task-009</span>
-      </div>
-      <div class="card-title">Configurar sudoers NOPASSWD para Claudio</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      
-      
-    </div>
-      
-    <div class="card" data-project="" data-tags="" data-priority="P4" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-010&quot;,&quot;title&quot;:&quot;Proton Mail Plus para auto-forward&quot;,&quot;description&quot;:&quot;Pagar plan básico de Proton (~4 USD/mes) para habilitar auto-forward de agenteclaudio@proton.me a claudio-ai@agentmail.to. Alternativa: Proton Bridge con IMAP directo.&quot;,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P4&quot;,&quot;project&quot;:null,&quot;tags&quot;:[],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-16T17:03:07.946Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:null,&quot;assignee&quot;:null,&quot;result&quot;:null,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #64748b">P4</span>
-        
-        <span class="task-id">task-010</span>
-      </div>
-      <div class="card-title">Proton Mail Plus para auto-forward</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      
-      
-    </div>
-      
-    <div class="card" data-project="personal" data-tags="" data-priority="P4" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-012&quot;,&quot;title&quot;:&quot;Research CPUs y GPUs usadas&quot;,&quot;description&quot;:null,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P4&quot;,&quot;project&quot;:&quot;personal&quot;,&quot;tags&quot;:[],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-16T20:00:52.592Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:&quot;2026-02-18T05:02:41.935Z&quot;,&quot;assignee&quot;:null,&quot;result&quot;:&quot;Análisis en ~/projects/research/server-upgrade-analysis.md. Rec: Ryzen 5 5600X (~00) + 16GB RAM extra. GPU: RTX 3060 12GB si se necesita ML.&quot;,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #64748b">P4</span>
-        
-        <span class="task-id">task-012</span>
-      </div>
-      <div class="card-title">Research CPUs y GPUs usadas</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      
-      
-    </div>
-      
-    <div class="card" data-project="x-twitter" data-tags="" data-priority="P3" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-014&quot;,&quot;title&quot;:&quot;Analizar y categorizar bookmarks de X de Pablo&quot;,&quot;description&quot;:null,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P3&quot;,&quot;project&quot;:&quot;x-twitter&quot;,&quot;tags&quot;:[],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-16T22:56:59.130Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:null,&quot;assignee&quot;:null,&quot;result&quot;:null,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #3b82f6">P3</span>
-        
-        <span class="task-id">task-014</span>
-      </div>
-      <div class="card-title">Analizar y categorizar bookmarks de X de Pablo</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      
-      
-    </div>
-      
-    <div class="card" data-project="personal" data-tags="" data-priority="P3" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-016&quot;,&quot;title&quot;:&quot;Aprender a usar Nano Banana Pro (generación/edición de imágenes con Gemini)&quot;,&quot;description&quot;:null,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P3&quot;,&quot;project&quot;:&quot;personal&quot;,&quot;tags&quot;:[],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-18T03:19:18.880Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:&quot;2026-02-18T05:02:41.831Z&quot;,&quot;assignee&quot;:null,&quot;result&quot;:&quot;Guía en docs/tasks/task-016-nano-banana-guide.md. Cubre setup, prompts, editing workflow, limitaciones.&quot;,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #3b82f6">P3</span>
-        
-        <span class="task-id">task-016</span>
-      </div>
-      <div class="card-title">Aprender a usar Nano Banana Pro (generación/edición de imágenes con Gemini)</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      
-      
-    </div>
-      
-    <div class="card" data-project="personal" data-tags="research,hardware" data-priority="P2" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-017&quot;,&quot;title&quot;:&quot;Investigar cómo exportar audios y datos del Huawei Fit 4 - hacks, APIs, reverse engineering, lo que sea necesario&quot;,&quot;description&quot;:null,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P2&quot;,&quot;project&quot;:&quot;personal&quot;,&quot;tags&quot;:[&quot;research&quot;,&quot;hardware&quot;],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-18T03:21:29.409Z&quot;,&quot;started_at&quot;:&quot;2026-02-18T05:01:50.721Z&quot;,&quot;completed_at&quot;:&quot;2026-02-18T05:04:55.854Z&quot;,&quot;assignee&quot;:null,&quot;result&quot;:&quot;Reporte en ~/projects/research/huawei-fit4-export.md. 8 métodos documentados. Insight clave: mic del Fit 4 es para llamadas BT, no graba audios almacenados. Falta validar con búsqueda web profunda.&quot;,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #f59e0b">P2</span>
-        
-        <span class="task-id">task-017</span>
-      </div>
-      <div class="card-title">Investigar cómo exportar audios y datos del Huawei Fit 4 - hacks, APIs, reverse engineering, lo que sea necesario</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      <div class="card-tags"><span class="tag">research</span><span class="tag">hardware</span></div>
-      
-    </div>
-      
-    <div class="card" data-project="openclaw" data-tags="" data-priority="P3" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-018&quot;,&quot;title&quot;:&quot;Plan agent teams implementation for CC orchestration&quot;,&quot;description&quot;:&quot;Design how to implement CC experimental agent teams (CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS + tmux) for multi-agent orchestration. Reference: reference/claude-code/multi-agent-orchestration.md&quot;,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P3&quot;,&quot;project&quot;:&quot;openclaw&quot;,&quot;tags&quot;:[],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-18T15:46:21.500Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:null,&quot;assignee&quot;:null,&quot;result&quot;:null,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #3b82f6">P3</span>
-        
-        <span class="task-id">task-018</span>
-      </div>
-      <div class="card-title">Plan agent teams implementation for CC orchestration</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      
-      
-    </div>
-      
-    <div class="card" data-project="claudio-infra" data-tags="research,future" data-priority="P4" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-019&quot;,&quot;title&quot;:&quot;Evaluar E2B agent-sandbox-skill para CC&quot;,&quot;description&quot;:&quot;disler/agent-sandbox-skill — sandboxes cloud para CC. Aislamiento real, scaling horizontal, browser testing integrado. Requiere E2B API key (pago). Evaluar cuando: (1) builds para clientes con CI/CD, (2) scaling multi-agente, (3) código destructivo. NO incluir en nightly worker. Ref: https://github.com/disler/agent-sandbox-skill&quot;,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P4&quot;,&quot;project&quot;:&quot;claudio-infra&quot;,&quot;tags&quot;:[&quot;research&quot;,&quot;future&quot;],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-18T16:11:14.022Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:null,&quot;assignee&quot;:null,&quot;result&quot;:null,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #64748b">P4</span>
-        
-        <span class="task-id">task-019</span>
-      </div>
-      <div class="card-title">Evaluar E2B agent-sandbox-skill para CC</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      <div class="card-tags"><span class="tag">research</span><span class="tag">future</span></div>
-      
-    </div>
-      
-    <div class="card" data-project="openclaw" data-tags="" data-priority="P2" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-020&quot;,&quot;title&quot;:&quot;Arreglar autocompact de OpenClaw - pierde contexto importante de conversaciones&quot;,&quot;description&quot;:null,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P2&quot;,&quot;project&quot;:&quot;openclaw&quot;,&quot;tags&quot;:[],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-18T17:04:31.872Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:null,&quot;assignee&quot;:null,&quot;result&quot;:null,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #f59e0b">P2</span>
-        
-        <span class="task-id">task-020</span>
-      </div>
-      <div class="card-title">Arreglar autocompact de OpenClaw - pierde contexto importante de conversaciones</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      
-      
-    </div>
-      
-    <div class="card" data-project="openclaw" data-tags="" data-priority="P2" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-021&quot;,&quot;title&quot;:&quot;Refinar y completar reporte PDF del plan de orquestacion Claudio-CC (Fase 4 falta, incorporar feedback de Pablo)&quot;,&quot;description&quot;:null,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P2&quot;,&quot;project&quot;:&quot;openclaw&quot;,&quot;tags&quot;:[],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-18T18:59:46.770Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:null,&quot;assignee&quot;:null,&quot;result&quot;:null,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #f59e0b">P2</span>
-        
-        <span class="task-id">task-021</span>
-      </div>
-      <div class="card-title">Refinar y completar reporte PDF del plan de orquestacion Claudio-CC (Fase 4 falta, incorporar feedback de Pablo)</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      
-      
-    </div>
-      
-    <div class="card" data-project="openclaw" data-tags="cte,context,cc-integration" data-priority="P2" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-022&quot;,&quot;title&quot;:&quot;Crear specs/context.md para CTE&quot;,&quot;description&quot;:&quot;Agregar context file en specs/ con estado actual del proyecto&quot;,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P2&quot;,&quot;project&quot;:&quot;openclaw&quot;,&quot;tags&quot;:[&quot;cte&quot;,&quot;context&quot;,&quot;cc-integration&quot;],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-19T02:26:37.264Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:null,&quot;assignee&quot;:null,&quot;result&quot;:null,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #f59e0b">P2</span>
-        
-        <span class="task-id">task-022</span>
-      </div>
-      <div class="card-title">Crear specs/context.md para CTE</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      <div class="card-tags"><span class="tag">cte</span><span class="tag">context</span><span class="tag">cc-integration</span></div>
-      
-    </div>
-      
-    <div class="card" data-project="openclaw" data-tags="cte,tailscale,testing" data-priority="P2" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-023&quot;,&quot;title&quot;:&quot;Test kanban UI desde Mac de Pablo vía Tailscale&quot;,&quot;description&quot;:null,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P2&quot;,&quot;project&quot;:&quot;openclaw&quot;,&quot;tags&quot;:[&quot;cte&quot;,&quot;tailscale&quot;,&quot;testing&quot;],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-19T02:26:40.001Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:null,&quot;assignee&quot;:null,&quot;result&quot;:null,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #f59e0b">P2</span>
-        
-        <span class="task-id">task-023</span>
-      </div>
-      <div class="card-title">Test kanban UI desde Mac de Pablo vía Tailscale</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      <div class="card-tags"><span class="tag">cte</span><span class="tag">tailscale</span><span class="tag">testing</span></div>
-      
-    </div>
-      
-    <div class="card" data-project="openclaw" data-tags="cc,headless,testing" data-priority="P2" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-024&quot;,&quot;title&quot;:&quot;Test CC en modo headless (-p flag)&quot;,&quot;description&quot;:null,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P2&quot;,&quot;project&quot;:&quot;openclaw&quot;,&quot;tags&quot;:[&quot;cc&quot;,&quot;headless&quot;,&quot;testing&quot;],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-19T02:26:40.085Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:null,&quot;assignee&quot;:null,&quot;result&quot;:null,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #f59e0b">P2</span>
-        
-        <span class="task-id">task-024</span>
-      </div>
-      <div class="card-title">Test CC en modo headless (-p flag)</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      <div class="card-tags"><span class="tag">cc</span><span class="tag">headless</span><span class="tag">testing</span></div>
-      
-    </div>
-      
-    <div class="card" data-project="openclaw" data-tags="cte,night-worker,integration" data-priority="P2" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-025&quot;,&quot;title&quot;:&quot;Verificar integración night-worker con CTE v2&quot;,&quot;description&quot;:null,&quot;status&quot;:&quot;ready&quot;,&quot;priority&quot;:&quot;P2&quot;,&quot;project&quot;:&quot;openclaw&quot;,&quot;tags&quot;:[&quot;cte&quot;,&quot;night-worker&quot;,&quot;integration&quot;],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-19T02:26:40.196Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:null,&quot;assignee&quot;:null,&quot;result&quot;:null,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #f59e0b">P2</span>
-        
-        <span class="task-id">task-025</span>
-      </div>
-      <div class="card-title">Verificar integración night-worker con CTE v2</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      <div class="card-tags"><span class="tag">cte</span><span class="tag">night-worker</span><span class="tag">integration</span></div>
-      
+      <div style="color:#E2E8F0;font-size:13px;">Rediseñar nightly planning skill con Pablo — formato actual no sirve, hacer junt...</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw</div>
     </div>
     </div>
-  </div>
-  <div class="column">
-    <div class="column-header">
-      <span style="color:#f59e0b">In Progress</span>
-      <span class="count">1</span>
-    </div>
-    <div class="column-body">
-      
-    <div class="card" data-project="personal" data-tags="" data-priority="P2" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-002&quot;,&quot;title&quot;:&quot;CC deep mastery — reference docs + hands-on&quot;,&quot;description&quot;:&quot;Deep understanding of Claude Code: architecture, hooks, prompting, orchestration, Agent SDK, patterns, OpenClaw integration. D1 reference docs complete. Next: hands-on validation, MCP bridge, night-worker v2.&quot;,&quot;status&quot;:&quot;in_progress&quot;,&quot;priority&quot;:&quot;P2&quot;,&quot;project&quot;:&quot;personal&quot;,&quot;tags&quot;:[],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-16T14:17:17.775Z&quot;,&quot;started_at&quot;:&quot;2026-02-18T14:02:53.819Z&quot;,&quot;completed_at&quot;:&quot;2026-02-18T05:04:55.771Z&quot;,&quot;assignee&quot;:null,&quot;result&quot;:&quot;Guía de 707 líneas en docs/tasks/task-002-cc-guide.md. Cubre: prompting patterns, hooks, tasks, subagentes, MCP, basado en IndyDevDan + Anthropic docs.&quot;,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #f59e0b">P2</span>
-        
-        <span class="task-id">task-002</span>
+    <div style="flex:1;min-width:280px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#FBBF24;"></div>
+        <span style="color:#E2E8F0;font-weight:600;">In Progress</span>
+        <span style="color:#64748B;font-size:12px;">(0)</span>
       </div>
-      <div class="card-title">CC deep mastery — reference docs + hands-on</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      
       
     </div>
+    <div style="flex:1;min-width:280px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#10B981;"></div>
+        <span style="color:#E2E8F0;font-weight:600;">Completed (last 20)</span>
+        <span style="color:#64748B;font-size:12px;">(88)</span>
+      </div>
+      <div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-004</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Monitorear adherencia de memory_search</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw-setup</div>
     </div>
-  </div>
-  <div class="column">
-    <div class="column-header">
-      <span style="color:#22c55e">Done</span>
-      <span class="count">6</span>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-005</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Evaluar Hindsight plugin nicoloboschi</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw-setup</div>
     </div>
-    <div class="column-body">
-      
-    <div class="card" data-project="openclaw-setup" data-tags="infra" data-priority="P2" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-003&quot;,&quot;title&quot;:&quot;Solucionar exec approvals que se resetean con cada restart&quot;,&quot;description&quot;:null,&quot;status&quot;:&quot;completed&quot;,&quot;priority&quot;:&quot;P2&quot;,&quot;project&quot;:&quot;openclaw-setup&quot;,&quot;tags&quot;:[&quot;infra&quot;],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-16T14:46:31.533Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:&quot;2026-02-18T03:14:09.988Z&quot;,&quot;assignee&quot;:null,&quot;result&quot;:&quot;Resuelto 2026-02-17: se configuró exec allowlist en gateway config.&quot;,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #f59e0b">P2</span>
-        
-        <span class="task-id">task-003</span>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-007</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
       </div>
-      <div class="card-title">Solucionar exec approvals que se resetean con cada restart</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      <div class="card-tags"><span class="tag">infra</span></div>
-      
+      <div style="color:#E2E8F0;font-size:13px;">Implementar TTS</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw-setup</div>
     </div>
-      
-    <div class="card" data-project="openclaw-setup" data-tags="memory" data-priority="P3" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-005&quot;,&quot;title&quot;:&quot;Evaluar Hindsight plugin nicoloboschi&quot;,&quot;description&quot;:&quot;Auto-recall de memorias, no depende del modelo. Ya instalado, evaluar si reemplaza memory_search&quot;,&quot;status&quot;:&quot;completed&quot;,&quot;priority&quot;:&quot;P3&quot;,&quot;project&quot;:&quot;openclaw-setup&quot;,&quot;tags&quot;:[&quot;memory&quot;],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-16T14:46:31.699Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:null,&quot;assignee&quot;:null,&quot;result&quot;:&quot;CANCELLED - Hindsight desinstalado (crasheaba server, sin GPU). Obsoleto.&quot;,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #3b82f6">P3</span>
-        
-        <span class="task-id">task-005</span>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-009</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
       </div>
-      <div class="card-title">Evaluar Hindsight plugin nicoloboschi</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      <div class="card-tags"><span class="tag">memory</span></div>
+      <div style="color:#E2E8F0;font-size:13px;">Configurar sudoers NOPASSWD para Claudio</div>
       
     </div>
-      
-    <div class="card" data-project="openclaw-setup" data-tags="feature" data-priority="P3" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-007&quot;,&quot;title&quot;:&quot;Implementar TTS&quot;,&quot;description&quot;:&quot;Activar Edge TTS para audio notes por WhatsApp&quot;,&quot;status&quot;:&quot;completed&quot;,&quot;priority&quot;:&quot;P3&quot;,&quot;project&quot;:&quot;openclaw-setup&quot;,&quot;tags&quot;:[&quot;feature&quot;],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-16T14:46:31.867Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:null,&quot;assignee&quot;:null,&quot;result&quot;:null,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #3b82f6">P3</span>
-        
-        <span class="task-id">task-007</span>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-013</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
       </div>
-      <div class="card-title">Implementar TTS</div>
-      <div class="card-meta">
-        
-        
-        
+      <div style="color:#E2E8F0;font-size:13px;">Investigar alternativas TTS open source/local</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">claudio</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-014</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
       </div>
-      
-      <div class="card-tags"><span class="tag">feature</span></div>
+      <div style="color:#E2E8F0;font-size:13px;">Analizar y categorizar bookmarks de X de Pablo</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">x-twitter</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-016</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Aprender a usar Nano Banana Pro (generación/edición de imágenes con Gemini)</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">personal</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-018</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Plan agent teams implementation for CC orchestration</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-027</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Test night-worker with new schema</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-028</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Investigar Voicebox (Qwen3-TTS) para clonación de voz local</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">infra</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-037</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Research integración CC + Figma</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-040</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Poner foto de perfil de WhatsApp (búho de circuitos)</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-043</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Web local para reportes y dashboards unificados</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-047</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Research: bypass captchas en browser headless</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-067</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Obtener acceso MeetHub para CRIBA — pedir invite a Pablo</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">personal</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-006</span>
+        <span style="background:#6B7280;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P4</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Investigar otros sistemas de memoria</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw-setup</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-008</span>
+        <span style="background:#6B7280;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P4</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Implementar Talk mode</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw-setup</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-010</span>
+        <span style="background:#6B7280;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P4</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Proton Mail Plus para auto-forward</div>
       
     </div>
-      
-    <div class="card" data-project="roadmap-claudio" data-tags="" data-priority="P2" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-011&quot;,&quot;title&quot;:&quot;Investigar alternativas TTS: ElevenLabs vs OpenAI vs otros. Comparar precios, calidad de voz en español, latencia. Evaluar si vale la pena pagar por mejor calidad.&quot;,&quot;description&quot;:null,&quot;status&quot;:&quot;completed&quot;,&quot;priority&quot;:&quot;P2&quot;,&quot;project&quot;:&quot;roadmap-claudio&quot;,&quot;tags&quot;:[],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-16T19:44:42.555Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:&quot;2026-02-16T20:38:43.042Z&quot;,&quot;assignee&quot;:null,&quot;result&quot;:null,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #f59e0b">P2</span>
-        
-        <span class="task-id">task-011</span>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-012</span>
+        <span style="background:#6B7280;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P4</span>
       </div>
-      <div class="card-title">Investigar alternativas TTS: ElevenLabs vs OpenAI vs otros. Comparar precios, calidad de voz en español, latencia. Evaluar si vale la pena pagar por mejor calidad.</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      
-      
+      <div style="color:#E2E8F0;font-size:13px;">Research CPUs y GPUs usadas</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">personal</div>
     </div>
-      
-    <div class="card" data-project="claudio" data-tags="" data-priority="P3" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-013&quot;,&quot;title&quot;:&quot;Investigar alternativas TTS open source/local&quot;,&quot;description&quot;:null,&quot;status&quot;:&quot;completed&quot;,&quot;priority&quot;:&quot;P3&quot;,&quot;project&quot;:&quot;claudio&quot;,&quot;tags&quot;:[],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-16T20:01:06.155Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:&quot;2026-02-16T20:38:42.958Z&quot;,&quot;assignee&quot;:null,&quot;result&quot;:null,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #3b82f6">P3</span>
-        
-        <span class="task-id">task-013</span>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-019</span>
+        <span style="background:#6B7280;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P4</span>
       </div>
-      <div class="card-title">Investigar alternativas TTS open source/local</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      
-      
-    </div>
-      
-    <div class="card" data-project="openclaw-setup" data-tags="" data-priority="P2" data-execution-mode="" data-task-type="" data-task='{&quot;id&quot;:&quot;task-015&quot;,&quot;title&quot;:&quot;Completar Google Calendar OAuth setup&quot;,&quot;description&quot;:&quot;Relanzar gog auth, hacer tunnel SSH desde Mac, completar browser auth. Testear gog calendar list.&quot;,&quot;status&quot;:&quot;completed&quot;,&quot;priority&quot;:&quot;P2&quot;,&quot;project&quot;:&quot;openclaw-setup&quot;,&quot;tags&quot;:[],&quot;dependencies&quot;:[],&quot;execution_mode&quot;:null,&quot;task_type&quot;:null,&quot;workdir&quot;:null,&quot;needs_research&quot;:false,&quot;estimated_effort&quot;:null,&quot;created_at&quot;:&quot;2026-02-18T02:36:57.645Z&quot;,&quot;started_at&quot;:null,&quot;completed_at&quot;:null,&quot;assignee&quot;:null,&quot;result&quot;:&quot;Google Calendar OAuth completado 2026-02-17.&quot;,&quot;failure_reason&quot;:null}' onclick="showModal(this)">
-      <div class="card-header">
-        <span class="priority-badge" style="background: #f59e0b">P2</span>
-        
-        <span class="task-id">task-015</span>
-      </div>
-      <div class="card-title">Completar Google Calendar OAuth setup</div>
-      <div class="card-meta">
-        
-        
-        
-      </div>
-      
-      
-      
+      <div style="color:#E2E8F0;font-size:13px;">Evaluar E2B agent-sandbox-skill para CC</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">claudio-infra</div>
     </div>
     </div>
-  </div>
-  <div class="column">
-    <div class="column-header">
-      <span style="color:#ef4444">Failed</span>
-      <span class="count">0</span>
+    <div style="flex:1;min-width:280px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#EF4444;"></div>
+        <span style="color:#E2E8F0;font-weight:600;">Failed</span>
+        <span style="color:#64748B;font-size:12px;">(1)</span>
+      </div>
+      <div style="background:#1E293B;border-left:3px solid #EF4444;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-050</span>
+        <span style="background:#FBBF24;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P2</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Crear cuenta Discord + unirse a canales OpenClaw</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">infra</div>
     </div>
-    <div class="column-body">
-      
     </div>
   </div>
 </div>
-
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal">
-    <div class="modal-header">
-      <h2 id="modal-title"></h2>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body" id="modal-body"></div>
-  </div>
-</div>
-
-<script>
-document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
-
-// Filtering
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    btn.classList.toggle('active');
-    applyFilters();
-  });
-});
-
-function applyFilters() {
-  const activeProjects = [...document.querySelectorAll('.filter-btn.active[data-filter-project]')].map(b => b.dataset.filterProject);
-  const activeTags = [...document.querySelectorAll('.filter-btn.active[data-filter-tag]')].map(b => b.dataset.filterTag);
-  const activePriorities = [...document.querySelectorAll('.filter-btn.active[data-filter-priority]')].map(b => b.dataset.filterPriority);
-  const activeModes = [...document.querySelectorAll('.filter-btn.active[data-filter-execution-mode]')].map(b => b.dataset.filterExecutionMode);
-  const activeTypes = [...document.querySelectorAll('.filter-btn.active[data-filter-task-type]')].map(b => b.dataset.filterTaskType);
-
-  document.querySelectorAll('.card').forEach(card => {
-    const proj = card.dataset.project;
-    const tags = card.dataset.tags ? card.dataset.tags.split(',').filter(Boolean) : [];
-    const priority = card.dataset.priority;
-    const mode = card.dataset.executionMode;
-    const type = card.dataset.taskType;
-
-    const matchProj = activeProjects.length === 0 || activeProjects.includes(proj);
-    const matchTag = activeTags.length === 0 || activeTags.some(t => tags.includes(t));
-    const matchPriority = activePriorities.length === 0 || activePriorities.includes(priority);
-    const matchMode = activeModes.length === 0 || activeModes.includes(mode);
-    const matchType = activeTypes.length === 0 || activeTypes.includes(type);
-
-    card.style.display = (matchProj && matchTag && matchPriority && matchMode && matchType) ? '' : 'none';
-  });
-}
-
-// Modal
-function showModal(cardEl) {
-  const task = JSON.parse(cardEl.dataset.task);
-  document.getElementById('modal-title').textContent = task.title;
-
-  const fields = [
-    { label: 'ID', value: task.id },
-    { label: 'Status', value: task.status },
-    { label: 'Priority', value: task.priority },
-    { label: 'Project', value: task.project || '-' },
-    { label: 'Tags', value: task.tags.length > 0 ? task.tags.join(', ') : '-' },
-    { label: 'Dependencies', value: task.dependencies.length > 0 ? task.dependencies.join(', ') : '-' },
-    { label: 'Execution Mode', value: task.execution_mode || '-' },
-    { label: 'Task Type', value: task.task_type || '-' },
-    { label: 'Working Dir', value: task.workdir || '-' },
-    { label: 'Needs Research', value: task.needs_research ? 'Yes' : 'No' },
-    { label: 'Estimated Effort', value: task.estimated_effort || '-' },
-    { label: 'Description', value: task.description || '-' },
-    { label: 'Created', value: task.created_at },
-    { label: 'Started', value: task.started_at || '-' },
-    { label: 'Completed', value: task.completed_at || '-' },
-    { label: 'Assignee', value: task.assignee || '-' },
-    { label: 'Result', value: task.result || '-' },
-    { label: 'Failure Reason', value: task.failure_reason || '-' },
-  ];
-
-  const html = fields.map(f =>
-    '<div class="modal-field"><div class="modal-field-label">' + f.label + '</div><div class="modal-field-value' + (f.value === '-' ? ' muted' : '') + '">' + escapeHtmlJs(f.value) + '</div></div>'
-  ).join('');
-
-  document.getElementById('modal-body').innerHTML = html;
-  document.getElementById('modal-overlay').classList.add('active');
-}
-
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('active');
-}
-
-document.getElementById('modal-overlay').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('modal-overlay')) closeModal();
-});
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeModal();
-});
-
-function escapeHtmlJs(s) {
-  const div = document.createElement('div');
-  div.textContent = s;
-  return div.innerHTML;
-}
-
-// Auto-refresh every 30s
-setTimeout(() => location.reload(), 30000);
-</script>
 </body>
 </html>
