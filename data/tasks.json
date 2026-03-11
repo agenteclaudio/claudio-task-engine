@@ -2054,6 +2054,27 @@
       "workdir": null,
       "needs_research": false,
       "estimated_effort": null
+    },
+    {
+      "id": "task-095",
+      "title": "Deep research: Plan de agencia de IA vertical para inmobiliarias",
+      "description": "Rehacer reporte de agencia. SOLO la agencia: escalar implementaciones de agentes comerciales IA para inmobiliarias, partiendo de Criba como primer caso. NO mezclar con Augur (SaaS separado con Lucas+Felipe), Next Level (SaaS separado con Emanuel), ni TPG (propuesta no aceptada). Investigar: mercado inmobiliario argentino y LATAM, competencia en AI para real estate, canales de outreach sin LinkedIn personal de Pablo, estructura legal, pricing de servicios, plan de 90 dias. Revisar la entrevista original (memory/entrevista-pablo.md), reference/negocio/, y el reporte anterior (projects/claudio-hub/reports/agency-strategy-2026-03-10.html) para saber que NO repetir. Dar 4 horas de runway. Publicar reporte corregido en Hub.",
+      "status": "pending",
+      "priority": "P1",
+      "dependencies": [],
+      "tags": [],
+      "project": "negocio",
+      "created_at": "2026-03-11T02:23:32.363Z",
+      "started_at": null,
+      "completed_at": null,
+      "assignee": null,
+      "result": null,
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": true,
+      "estimated_effort": "large"
     }
   ],
   "projects": []
