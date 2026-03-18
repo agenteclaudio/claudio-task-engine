@@ -2599,7 +2599,7 @@
       "started_at": "2026-03-16T05:05:39.137Z",
       "completed_at": "2026-03-17T01:23:14.342Z",
       "assignee": null,
-      "result": "Cold email templates for inmobiliarias completed. 4-email sequences (gerentes comerciales + dueños). SOLVE framework (Nick Saraev). Deliverable: /tmp/cold-email-templates.md (12.8KB). Needs copy to reference/negocio/",
+      "result": "✅ Cold email templates v2 — 3 standalone templates (cold intro, referral, post-demo) using Hook→Gap→Angle→CTA framework. Includes A/B subject lines, customization guides, merge fields, success metrics. Real case study integrated (Criba anonymized). Ready for campaign deployment. Output: reference/negocio/cold-email-templates/inmobiliarias-v2.md",
       "failure_reason": null,
       "execution_mode": null,
       "task_type": null,
