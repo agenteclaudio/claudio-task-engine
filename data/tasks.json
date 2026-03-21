@@ -3303,6 +3303,27 @@
       "workdir": null,
       "needs_research": false,
       "estimated_effort": null
+    },
+    {
+      "id": "task-155",
+      "title": "-p",
+      "description": null,
+      "status": "pending",
+      "priority": "P4",
+      "dependencies": [],
+      "tags": [],
+      "project": null,
+      "created_at": "2026-03-21T05:03:26.498Z",
+      "started_at": null,
+      "completed_at": null,
+      "assignee": null,
+      "result": null,
+      "failure_reason": null,
+      "execution_mode": null,
+      "task_type": null,
+      "workdir": null,
+      "needs_research": false,
+      "estimated_effort": null
     }
   ],
   "projects": []
