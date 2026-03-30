@@ -2267,7 +2267,7 @@
       "id": "task-104",
       "title": "Curación semanal de podcasts para viajes UdeSA: skill que cada domingo seleccione 2-3 episodios relevantes (Huberman, Modern Wisdom, Lex Fridman, etc.) basados en intereses de Pablo (neurociencia, IA, filosofía, productividad). Enviar recomendación por Slack DM con resumen de cada episodio y por qué le importa.",
       "description": null,
-      "status": "in_progress",
+      "status": "failed",
       "priority": "P3",
       "dependencies": [],
       "tags": [
@@ -2280,7 +2280,7 @@
       "started_at": "2026-03-28T05:04:17.180Z",
       "completed_at": null,
       "assignee": null,
-      "result": "Podcast curation skill build in progress via Claude Code. Research completed (15+ sources: iTunes, PodcastIndex, Spotify, Taddy, RSS parsers). Architecture designed and context provided to CC. Expected completion: 03:10-03:20 ART. Deliverables pending: SKILL.md, config.json, fetch-episodes.py, filter-episodes-claude.py, cron-config.json, test scripts. Next: Manual RSS URL configuration + cron registration after CC completes.",
+      "result": "CC build session (Mar 29, 02:03 ART) did not produce output. No BUILD-REPORT.md, no skill files, no error logs. Session likely crashed/timed out. Recommend: retry with simplified prompt OR defer to next week (P3 priority). Pablo to approve approach.",
       "failure_reason": null,
       "execution_mode": null,
       "task_type": null,
