@@ -219,4 +219,112 @@ describe("generateKanban", () => {
     expect(html).not.toContain("</script><script>alert(1)</script>");
     expect(html).toContain("&lt;/script&gt;");
   });
+
+  // v3 tests
+  it("sorts tasks by priority within columns (P1 first, P4 last)", () => {
+    const store: TaskStore = {
+      tasks: [
+        makeTask({ id: "task-001", title: "Low priority", status: "ready", priority: "P4", created_at: "2026-02-16T00:00:00Z" }),
+        makeTask({ id: "task-002", title: "High priority", status: "ready", priority: "P1", created_at: "2026-02-16T01:00:00Z" }),
+        makeTask({ id: "task-003", title: "Med priority", status: "ready", priority: "P2", created_at: "2026-02-16T02:00:00Z" }),
+      ],
+      projects,
+    };
+    const html = generateKanban(store);
+    const p1Pos = html.indexOf("High priority");
+    const p2Pos = html.indexOf("Med priority");
+    const p4Pos = html.indexOf("Low priority");
+    expect(p1Pos).toBeLessThan(p2Pos);
+    expect(p2Pos).toBeLessThan(p4Pos);
+  });
+
+  it("within same priority, sorts by created_at (oldest first)", () => {
+    const store: TaskStore = {
+      tasks: [
+        makeTask({ id: "task-001", title: "Newer task", status: "ready", priority: "P2", created_at: "2026-02-17T00:00:00Z" }),
+        makeTask({ id: "task-002", title: "Older task", status: "ready", priority: "P2", created_at: "2026-02-16T00:00:00Z" }),
+      ],
+      projects,
+    };
+    const html = generateKanban(store);
+    const olderPos = html.indexOf("Older task");
+    const newerPos = html.indexOf("Newer task");
+    expect(olderPos).toBeLessThan(newerPos);
+  });
+
+  it("board mode toggle is present in HTML", () => {
+    const store: TaskStore = { tasks: [], projects };
+    const html = generateKanban(store);
+    expect(html).toContain("board-toggle");
+    expect(html).toContain("With Pablo");
+    expect(html).toContain("Autonomous");
+  });
+
+  it("board mode data attributes on cards for filtering", () => {
+    const store: TaskStore = {
+      tasks: [
+        makeTask({ id: "task-001", title: "Collab task", execution_mode: "collaborative" }),
+        makeTask({ id: "task-002", title: "Auto task", execution_mode: "autonomous" }),
+      ],
+      projects,
+    };
+    const html = generateKanban(store);
+    expect(html).toContain('data-execution-mode="collaborative"');
+    expect(html).toContain('data-execution-mode="autonomous"');
+  });
+
+  it("waiting_for_input column rendered in markup", () => {
+    const store: TaskStore = {
+      tasks: [makeTask({ id: "task-001", title: "Waiting task", status: "waiting_for_input" })],
+      projects,
+    };
+    const html = generateKanban(store);
+    expect(html).toContain("Waiting for Input");
+    expect(html).toContain("column-waiting_for_input");
+    expect(html).toContain("Waiting task");
+  });
+
+  it("structured tags render with category-specific CSS", () => {
+    const store: TaskStore = {
+      tasks: [makeTask({ id: "task-001", title: "Tagged task", tags: ["openclaw", "research", "cc"] })],
+      projects,
+    };
+    const html = generateKanban(store);
+    expect(html).toContain("tag-area");
+    expect(html).toContain("tag-type");
+    expect(html).toContain("tag-tool");
+  });
+
+  it("task creation form markup is present", () => {
+    const store: TaskStore = { tasks: [], projects };
+    const html = generateKanban(store);
+    expect(html).toContain("create-form-overlay");
+    expect(html).toContain("create-task-form");
+    expect(html).toContain("task-title");
+    expect(html).toContain("fab");
+  });
+
+  it("chat bar markup is present at bottom", () => {
+    const store: TaskStore = { tasks: [], projects };
+    const html = generateKanban(store);
+    expect(html).toContain("chat-bar");
+    expect(html).toContain("chat-input");
+    expect(html).toContain("chat-send");
+    expect(html).toContain("chat-panel");
+  });
+
+  it("With Pablo board shows 4 columns (backlog, ready, in_progress, done)", () => {
+    const store: TaskStore = { tasks: [], projects };
+    const html = generateKanban(store);
+    // The JS sets cols-4 for pablo mode by default
+    expect(html).toContain("cols-4");
+    expect(html).toContain("pabloColumns");
+  });
+
+  it("Autonomous board shows 5 columns (backlog, ready, waiting_for_input, in_progress, done)", () => {
+    const store: TaskStore = { tasks: [], projects };
+    const html = generateKanban(store);
+    expect(html).toContain("autonomousColumns");
+    expect(html).toContain("waiting_for_input");
+  });
 });

@@ -117,6 +117,14 @@ describe("computeStatus", () => {
     expect(updated.find((t) => t.id === "B")!.status).toBe("in_progress");
     expect(updated.find((t) => t.id === "C")!.status).toBe("failed");
   });
+
+  it("does not recompute waiting_for_input tasks", () => {
+    const tasks = [
+      makeTask({ id: "A", status: "waiting_for_input" }),
+    ];
+    const updated = computeStatus(tasks);
+    expect(updated.find((t) => t.id === "A")!.status).toBe("waiting_for_input");
+  });
 });
 
 describe("computeWaves", () => {

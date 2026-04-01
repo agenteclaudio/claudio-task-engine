@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CTE Kanban — Claudio Task Engine</title>
+<style>
+  body { background:#0F172A; color:#E2E8F0; font-family:Inter,-apple-system,sans-serif; margin:0; padding:24px; }
+  @media(max-width:768px) { body { padding:12px; } }
+</style>
+</head>
+<body>
+<div style="max-width:1400px;margin:0 auto;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1 style="margin:0;font-size:24px;color:#FBBF24;">🦉 CTE Kanban</h1>
+      <p style="margin:4px 0 0;color:#64748B;font-size:13px;">Claudio Task Engine — 92 tasks total, 88 completed</p>
+    </div>
+    <div style="color:#64748B;font-size:12px;">Updated: Mar 6, 2026</div>
+  </div>
+  <div style="display:flex;gap:20px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:280px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#3B82F6;"></div>
+        <span style="color:#E2E8F0;font-weight:600;">Ready</span>
+        <span style="color:#64748B;font-size:12px;">(3)</span>
+      </div>
+      <div style="background:#1E293B;border-left:3px solid #3B82F6;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-064</span>
+        <span style="background:#FBBF24;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P2</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Finalizar schedule de entrenamiento: dojo No-Gi + gym, validar con Pablo</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">personal</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #3B82F6;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-065</span>
+        <span style="background:#FBBF24;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P2</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Diseñar rutina gym para Pablo: 2-3x semana, coordinar con dojo</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">personal</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #3B82F6;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-089</span>
+        <span style="background:#6B7280;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P4</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Rediseñar nightly planning skill con Pablo — formato actual no sirve, hacer junt...</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw</div>
+    </div>
+    </div>
+    <div style="flex:1;min-width:280px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#FBBF24;"></div>
+        <span style="color:#E2E8F0;font-weight:600;">In Progress</span>
+        <span style="color:#64748B;font-size:12px;">(0)</span>
+      </div>
+      
+    </div>
+    <div style="flex:1;min-width:280px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#10B981;"></div>
+        <span style="color:#E2E8F0;font-weight:600;">Completed (last 20)</span>
+        <span style="color:#64748B;font-size:12px;">(88)</span>
+      </div>
+      <div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-004</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Monitorear adherencia de memory_search</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw-setup</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-005</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Evaluar Hindsight plugin nicoloboschi</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw-setup</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-007</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Implementar TTS</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw-setup</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-009</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Configurar sudoers NOPASSWD para Claudio</div>
+      
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-013</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Investigar alternativas TTS open source/local</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">claudio</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-014</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Analizar y categorizar bookmarks de X de Pablo</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">x-twitter</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-016</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Aprender a usar Nano Banana Pro (generación/edición de imágenes con Gemini)</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">personal</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-018</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Plan agent teams implementation for CC orchestration</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-027</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Test night-worker with new schema</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-028</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Investigar Voicebox (Qwen3-TTS) para clonación de voz local</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">infra</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-037</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Research integración CC + Figma</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-040</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Poner foto de perfil de WhatsApp (búho de circuitos)</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-043</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Web local para reportes y dashboards unificados</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-047</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Research: bypass captchas en browser headless</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-067</span>
+        <span style="background:#3B82F6;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P3</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Obtener acceso MeetHub para CRIBA — pedir invite a Pablo</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">personal</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-006</span>
+        <span style="background:#6B7280;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P4</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Investigar otros sistemas de memoria</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw-setup</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-008</span>
+        <span style="background:#6B7280;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P4</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Implementar Talk mode</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">openclaw-setup</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-010</span>
+        <span style="background:#6B7280;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P4</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Proton Mail Plus para auto-forward</div>
+      
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-012</span>
+        <span style="background:#6B7280;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P4</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Research CPUs y GPUs usadas</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">personal</div>
+    </div>
+<div style="background:#1E293B;border-left:3px solid #10B981;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-019</span>
+        <span style="background:#6B7280;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P4</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Evaluar E2B agent-sandbox-skill para CC</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">claudio-infra</div>
+    </div>
+    </div>
+    <div style="flex:1;min-width:280px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#EF4444;"></div>
+        <span style="color:#E2E8F0;font-weight:600;">Failed</span>
+        <span style="color:#64748B;font-size:12px;">(1)</span>
+      </div>
+      <div style="background:#1E293B;border-left:3px solid #EF4444;border-radius:8px;padding:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="color:#94A3B8;font-size:11px;">task-050</span>
+        <span style="background:#FBBF24;color:#0F172A;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;">P2</span>
+      </div>
+      <div style="color:#E2E8F0;font-size:13px;">Crear cuenta Discord + unirse a canales OpenClaw</div>
+      <div style="color:#64748B;font-size:11px;margin-top:4px;">infra</div>
+    </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

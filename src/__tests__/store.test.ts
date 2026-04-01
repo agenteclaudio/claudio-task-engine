@@ -375,6 +375,42 @@ describe("v2 fields", () => {
     }
   });
 
+  it("updateTask can set status to waiting_for_input", () => {
+    const addResult = addTask(emptyStore, { title: "Task to wait" });
+    expect(addResult.ok).toBe(true);
+    if (!addResult.ok) return;
+
+    const result = updateTask(addResult.value, "task-001", {
+      status: "waiting_for_input",
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.tasks[0].status).toBe("waiting_for_input");
+    }
+  });
+
+  it("addTask with structured tags succeeds", () => {
+    const result = addTask(emptyStore, {
+      title: "Tagged task",
+      tags: ["openclaw", "research", "cc"],
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.tasks[0].tags).toEqual(["openclaw", "research", "cc"]);
+    }
+  });
+
+  it("addTask with unknown tags still succeeds (backward compat)", () => {
+    const result = addTask(emptyStore, {
+      title: "Free tag task",
+      tags: ["my-custom-tag", "something-else"],
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.tasks[0].tags).toEqual(["my-custom-tag", "something-else"]);
+    }
+  });
+
   it("backward compatibility: store without new fields loads correctly", () => {
     const p = tmpFile("legacy.json");
     const legacyStore = {

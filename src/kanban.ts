@@ -1,5 +1,7 @@
 import type { Task, TaskStore } from "./types.js";
+import { TAG_CATEGORIES, categorizeTag } from "./types.js";
 import { computeStatus } from "./dag.js";
+import { sortByPriority } from "./priority.js";
 
 const PRIORITY_COLORS: Record<string, string> = {
   P1: "#ef4444",
@@ -12,8 +14,17 @@ const STATUS_COLORS: Record<string, string> = {
   backlog: "#64748b",
   ready: "#22d3ee",
   in_progress: "#f59e0b",
+  in_review: "#a855f7",
+  waiting_for_input: "#eab308",
   done: "#22c55e",
   failed: "#ef4444",
+};
+
+const TAG_CATEGORY_COLORS: Record<string, string> = {
+  area: "#3b82f6",
+  type: "#22c55e",
+  tool: "#a855f7",
+  other: "#64748b",
 };
 
 const TASK_TYPE_ICONS: Record<string, string> = {
@@ -62,6 +73,12 @@ function renderTaskJson(task: Task): string {
   }));
 }
 
+function renderTagPill(tag: string): string {
+  const category = categorizeTag(tag);
+  const color = TAG_CATEGORY_COLORS[category] ?? TAG_CATEGORY_COLORS.other;
+  return `<span class="tag tag-${escapeHtml(category)}" style="background: ${color}22; color: ${color}; border: 1px solid ${color}44">${escapeHtml(tag)}</span>`;
+}
+
 function renderCard(task: Task, store: TaskStore): string {
   const project = task.project
     ? store.projects.find((p) => p.id === task.project)
@@ -84,17 +101,19 @@ function renderCard(task: Task, store: TaskStore): string {
         ${task.needs_research ? `<span class="research-badge" title="Needs research">\u{1F50D}</span>` : ""}
       </div>
       ${project ? `<div class="card-project"><span class="project-dot" style="background: ${escapeHtml(project.color)}"></span>${escapeHtml(project.name)}</div>` : ""}
-      ${task.tags.length > 0 ? `<div class="card-tags">${task.tags.map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+      ${task.tags.length > 0 ? `<div class="card-tags">${task.tags.map((t) => renderTagPill(t)).join("")}</div>` : ""}
       ${depCount > 0 ? `<div class="card-deps">\u{1F517} ${depCount} dep${depCount > 1 ? "s" : ""}</div>` : ""}
     </div>`;
 }
 
-function categorize(tasks: Task[], store: TaskStore): Map<string, { label: string; tasks: Task[] }> {
+function categorize(tasks: Task[], _store: TaskStore): Map<string, { label: string; tasks: Task[] }> {
   const updated = computeStatus(tasks);
   const columns = new Map<string, { label: string; tasks: Task[] }>([
     ["backlog", { label: "Backlog", tasks: [] }],
+    ["waiting_for_input", { label: "Waiting for Input", tasks: [] }],
     ["ready", { label: "Ready", tasks: [] }],
     ["in_progress", { label: "In Progress", tasks: [] }],
+    ["in_review", { label: "In Review", tasks: [] }],
     ["done", { label: "Done", tasks: [] }],
     ["failed", { label: "Failed", tasks: [] }],
   ]);
@@ -108,8 +127,14 @@ function categorize(tasks: Task[], store: TaskStore): Map<string, { label: strin
       case "ready":
         columns.get("ready")!.tasks.push(t);
         break;
+      case "waiting_for_input":
+        columns.get("waiting_for_input")!.tasks.push(t);
+        break;
       case "in_progress":
         columns.get("in_progress")!.tasks.push(t);
+        break;
+      case "in_review":
+        columns.get("in_review")!.tasks.push(t);
         break;
       case "completed":
         columns.get("done")!.tasks.push(t);
@@ -118,6 +143,11 @@ function categorize(tasks: Task[], store: TaskStore): Map<string, { label: strin
         columns.get("failed")!.tasks.push(t);
         break;
     }
+  }
+
+  // Sort tasks within each column by priority then created_at
+  for (const col of columns.values()) {
+    col.tasks = sortByPriority(col.tasks);
   }
 
   return columns;
@@ -132,6 +162,8 @@ function renderStats(store: TaskStore, columns: Map<string, { label: string; tas
   const completed = columns.get("done")!.tasks.length;
   const progressPct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
+  const statKeys = ["backlog", "waiting_for_input", "ready", "in_progress", "in_review", "done", "failed"];
+
   return `
   <div class="stats">
     <div class="stats-row">
@@ -139,7 +171,7 @@ function renderStats(store: TaskStore, columns: Map<string, { label: string; tas
         <span class="stat-value">${total}</span>
         <span class="stat-label">Total</span>
       </div>
-      ${["backlog", "ready", "in_progress", "done", "failed"].map((key) => {
+      ${statKeys.map((key) => {
         const col = columns.get(key)!;
         return `<div class="stat-item">
           <span class="stat-value" style="color:${STATUS_COLORS[key]}">${col.tasks.length}</span>
@@ -157,12 +189,24 @@ function renderStats(store: TaskStore, columns: Map<string, { label: string; tas
   </div>`;
 }
 
+function renderTagFilterPanel(): string {
+  const categories = Object.entries(TAG_CATEGORIES);
+  return categories.map(([category, tags]) => {
+    const color = TAG_CATEGORY_COLORS[category] ?? TAG_CATEGORY_COLORS.other;
+    return `<div class="filter-group filter-group-tags" data-tag-category="${escapeHtml(category)}">
+      <span class="filter-label" style="color:${color}">${escapeHtml(category)}</span>
+      ${(tags as readonly string[]).map((t) => `<button class="filter-btn" data-filter-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join("\n      ")}
+    </div>`;
+  }).join("\n  ");
+}
+
 export function generateKanban(store: TaskStore): string {
   const columns = categorize(store.tasks, store);
-  const allTags = [...new Set(store.tasks.flatMap((t) => t.tags))].sort();
   const allExecModes = [...new Set(store.tasks.map((t) => t.execution_mode).filter(Boolean))].sort() as string[];
   const allTaskTypes = [...new Set(store.tasks.map((t) => t.task_type).filter(Boolean))].sort() as string[];
-  const columnOrder = ["backlog", "ready", "in_progress", "done", "failed"];
+
+  // All column keys including waiting_for_input
+  const allColumnKeys = ["backlog", "waiting_for_input", "ready", "in_progress", "in_review", "done", "failed"];
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -191,6 +235,7 @@ export function generateKanban(store: TaskStore): string {
     color: var(--text-primary);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
+    padding-bottom: 60px;
   }
 
   /* Header */
@@ -202,6 +247,7 @@ export function generateKanban(store: TaskStore): string {
     align-items: center;
     justify-content: space-between;
   }
+  .header-left { display: flex; align-items: center; gap: 24px; }
   .header h1 {
     font-size: 22px;
     font-weight: 700;
@@ -211,6 +257,33 @@ export function generateKanban(store: TaskStore): string {
     letter-spacing: -0.5px;
   }
   .header-time { font-size: 12px; color: var(--text-muted); }
+
+  /* Board Mode Toggle */
+  .board-toggle {
+    display: flex;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .board-toggle-btn {
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .board-toggle-btn.active {
+    background: var(--accent);
+    color: #fff;
+  }
+  .board-toggle-btn:hover:not(.active) {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+  }
 
   /* Stats */
   .stats {
@@ -283,11 +356,13 @@ export function generateKanban(store: TaskStore): string {
   /* Board */
   .board {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
     gap: 12px;
     padding: 16px 24px;
     min-height: calc(100vh - 240px);
   }
+  .board.cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .board.cols-5 { grid-template-columns: repeat(5, 1fr); }
+  .board.cols-6 { grid-template-columns: repeat(6, 1fr); }
 
   /* Column */
   .column {
@@ -298,6 +373,8 @@ export function generateKanban(store: TaskStore): string {
     border: 1px solid var(--border);
     min-width: 0;
   }
+  .column.column-waiting_for_input { border-color: #eab30844; }
+  .column.column-in_review { border-color: #a855f744; }
   .column-header {
     padding: 14px 16px;
     font-weight: 600;
@@ -361,6 +438,7 @@ export function generateKanban(store: TaskStore): string {
   .mode-autonomous { background: rgba(34,197,94,0.2); color: #4ade80; }
   .mode-review_needed { background: rgba(245,158,11,0.2); color: #fbbf24; }
   .mode-pair { background: rgba(168,85,247,0.2); color: #c084fc; }
+  .mode-collaborative { background: rgba(59,130,246,0.2); color: #60a5fa; }
   .task-id { font-size: 11px; color: var(--text-muted); margin-left: auto; }
   .card-title { font-size: 13px; font-weight: 500; margin-bottom: 8px; line-height: 1.4; }
   .card-meta { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
@@ -383,8 +461,6 @@ export function generateKanban(store: TaskStore): string {
     font-size: 10px;
     padding: 2px 8px;
     border-radius: 10px;
-    background: var(--bg-elevated);
-    color: var(--text-secondary);
   }
   .card-deps { font-size: 11px; color: var(--text-muted); }
 
@@ -442,17 +518,186 @@ export function generateKanban(store: TaskStore): string {
   .modal-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
   .modal-badges .priority-badge { font-size: 12px; padding: 3px 10px; }
 
+  /* Create Task Form Modal */
+  .create-form-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 1001;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    animation: fadeIn 0.2s ease;
+  }
+  .create-form-overlay.active { display: flex; }
+  .create-form {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+    animation: slideUp 0.25s ease;
+  }
+  .create-form-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .create-form-header h2 { font-size: 18px; font-weight: 600; }
+  .create-form-body { padding: 20px 24px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .form-group input, .form-group textarea, .form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+  .form-actions { display: flex; gap: 8px; justify-content: flex-end; padding-top: 8px; }
+  .btn {
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-secondary { background: transparent; color: var(--text-secondary); }
+  .btn-secondary:hover { background: var(--bg-elevated); }
+  .tag-select { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tag-select-btn {
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.2s;
+  }
+  .tag-select-btn.selected { background: var(--accent-glow); color: #818cf8; border-color: var(--accent); }
+
+  /* FAB */
+  .fab {
+    position: fixed;
+    bottom: 76px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+  }
+  .fab:hover { transform: scale(1.1); }
+
+  /* Chat Bar */
+  .chat-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    z-index: 998;
+  }
+  .chat-panel {
+    max-height: 0;
+    overflow-y: auto;
+    transition: max-height 0.3s ease;
+    padding: 0 16px;
+  }
+  .chat-panel.expanded { max-height: 300px; padding: 12px 16px; }
+  .chat-message { margin-bottom: 8px; font-size: 13px; line-height: 1.4; }
+  .chat-message.user { color: #818cf8; }
+  .chat-message.system { color: var(--text-secondary); }
+  .chat-message code { background: var(--bg-elevated); padding: 1px 4px; border-radius: 3px; font-size: 12px; }
+  .chat-input-row {
+    display: flex;
+    gap: 8px;
+    padding: 10px 16px;
+    align-items: center;
+  }
+  .chat-toggle {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+  }
+  .chat-input {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .chat-input:focus { outline: none; border-color: var(--accent); }
+  .chat-send {
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .chat-send:hover { opacity: 0.9; }
+
   /* Responsive */
   @media (max-width: 1024px) {
-    .board { grid-template-columns: repeat(3, 1fr); overflow-x: auto; }
+    .board { grid-template-columns: repeat(3, 1fr) !important; overflow-x: auto; }
   }
   @media (max-width: 640px) {
-    .board { grid-template-columns: 1fr; }
+    .board { grid-template-columns: 1fr !important; }
     .stats-row { gap: 12px; }
     .filters { padding: 10px 16px; }
-    .header { padding: 16px; }
+    .header { padding: 16px; flex-wrap: wrap; gap: 12px; }
     .board { padding: 12px 16px; }
     .modal { max-width: 100%; margin: 12px; border-radius: 12px; }
+    .create-form { max-width: 100%; margin: 12px; }
   }
 
   /* Animations */
@@ -468,7 +713,13 @@ export function generateKanban(store: TaskStore): string {
 </head>
 <body>
 <div class="header">
-  <h1>CTE Kanban</h1>
+  <div class="header-left">
+    <h1>CTE Kanban</h1>
+    <div class="board-toggle" id="board-toggle">
+      <button class="board-toggle-btn active" data-board="pablo">With Pablo</button>
+      <button class="board-toggle-btn" data-board="autonomous">Autonomous</button>
+    </div>
+  </div>
   <span class="header-time" id="last-updated"></span>
 </div>
 ${renderStats(store, columns)}
@@ -477,10 +728,7 @@ ${renderStats(store, columns)}
     <span class="filter-label">Project</span>
     ${store.projects.map((p) => `<button class="filter-btn" data-filter-project="${escapeHtml(p.id)}"><span class="dot" style="background:${escapeHtml(p.color)}"></span>${escapeHtml(p.name)}</button>`).join("\n    ")}
   </div>
-  ${allTags.length > 0 ? `<div class="filter-group">
-    <span class="filter-label">Tags</span>
-    ${allTags.map((t) => `<button class="filter-btn" data-filter-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join("\n    ")}
-  </div>` : ""}
+  ${renderTagFilterPanel()}
   <div class="filter-group">
     <span class="filter-label">Priority</span>
     ${["P1", "P2", "P3", "P4"].map((p) => `<button class="filter-btn" data-filter-priority="${p}"><span class="dot" style="background:${PRIORITY_COLORS[p]}"></span>${p}</button>`).join("\n    ")}
@@ -494,11 +742,11 @@ ${renderStats(store, columns)}
     ${allTaskTypes.map((t) => `<button class="filter-btn" data-filter-task-type="${escapeHtml(t)}">${TASK_TYPE_ICONS[t] ?? ""} ${escapeHtml(t)}</button>`).join("\n    ")}
   </div>` : ""}
 </div>
-<div class="board">
-${columnOrder
+<div class="board cols-5" id="board">
+${allColumnKeys
   .map((key) => {
     const col = columns.get(key)!;
-    return `  <div class="column">
+    return `  <div class="column column-${key}" data-column="${key}">
     <div class="column-header">
       <span style="color:${STATUS_COLORS[key]}">${escapeHtml(col.label)}</span>
       <span class="count">${col.tasks.length}</span>
@@ -511,6 +759,7 @@ ${columnOrder
   .join("\n")}
 </div>
 
+<!-- Task Detail Modal -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <div class="modal-header">
@@ -521,8 +770,123 @@ ${columnOrder
   </div>
 </div>
 
+<!-- Create Task Form -->
+<div class="create-form-overlay" id="create-form-overlay">
+  <div class="create-form">
+    <div class="create-form-header">
+      <h2>New Task</h2>
+      <button class="modal-close" onclick="closeCreateForm()">\u2715</button>
+    </div>
+    <div class="create-form-body">
+      <form id="create-task-form">
+        <div class="form-group">
+          <label for="task-title">Title *</label>
+          <input type="text" id="task-title" required placeholder="Task title...">
+        </div>
+        <div class="form-group">
+          <label for="task-description">Description</label>
+          <textarea id="task-description" placeholder="Optional description..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="task-priority">Priority</label>
+          <select id="task-priority">
+            <option value="P1">P1 - Urgent + Important</option>
+            <option value="P2">P2 - Important</option>
+            <option value="P3" selected>P3 - Urgent</option>
+            <option value="P4">P4 - Backlog</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="task-project">Project</label>
+          <select id="task-project">
+            <option value="">None</option>
+            ${store.projects.map((p) => `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)}</option>`).join("")}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="task-exec-mode">Execution Mode</label>
+          <select id="task-exec-mode">
+            <option value="collaborative" selected>Collaborative (With Pablo)</option>
+            <option value="autonomous">Autonomous</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tags</label>
+          <div class="tag-select" id="tag-select">
+            ${Object.entries(TAG_CATEGORIES).map(([_cat, tags]) =>
+              (tags as readonly string[]).map((t) =>
+                `<button type="button" class="tag-select-btn" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</button>`
+              ).join("")
+            ).join("")}
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeCreateForm()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fab" onclick="openCreateForm()" title="Create task">+</button>
+
+<!-- Chat Bar -->
+<div class="chat-bar" id="chat-bar">
+  <div class="chat-panel" id="chat-panel"></div>
+  <div class="chat-input-row">
+    <button class="chat-toggle" id="chat-toggle" title="Toggle chat">\u25B2</button>
+    <input class="chat-input" id="chat-input" type="text" placeholder="Type a command or message..." />
+    <button class="chat-send" id="chat-send">Send</button>
+  </div>
+</div>
+
 <script>
 document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+
+// Board Mode
+const boardToggle = document.getElementById('board-toggle');
+const board = document.getElementById('board');
+const pabloColumns = ['backlog', 'ready', 'in_progress', 'in_review', 'done'];
+const autonomousColumns = ['backlog', 'waiting_for_input', 'ready', 'in_progress', 'in_review', 'done'];
+
+function setBoard(mode) {
+  const btns = boardToggle.querySelectorAll('.board-toggle-btn');
+  btns.forEach(b => b.classList.toggle('active', b.dataset.board === mode));
+
+  const visibleCols = mode === 'autonomous' ? autonomousColumns : pabloColumns;
+  board.className = 'board cols-' + visibleCols.length;
+
+  document.querySelectorAll('.column').forEach(col => {
+    const colKey = col.dataset.column;
+    if (colKey === 'failed') {
+      col.style.display = 'none';
+      return;
+    }
+    col.style.display = visibleCols.includes(colKey) ? '' : 'none';
+  });
+
+  // Filter cards by execution mode
+  document.querySelectorAll('.card').forEach(card => {
+    const execMode = card.dataset.executionMode;
+    if (mode === 'autonomous') {
+      card.style.display = execMode === 'autonomous' ? '' : 'none';
+    } else {
+      card.style.display = (execMode === 'autonomous') ? 'none' : '';
+    }
+  });
+
+  localStorage.setItem('cte-board-mode', mode);
+}
+
+boardToggle.addEventListener('click', (e) => {
+  const btn = e.target.closest('.board-toggle-btn');
+  if (btn) setBoard(btn.dataset.board);
+});
+
+// Restore saved board mode
+setBoard(localStorage.getItem('cte-board-mode') || 'pablo');
 
 // Filtering
 document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -539,6 +903,8 @@ function applyFilters() {
   const activeModes = [...document.querySelectorAll('.filter-btn.active[data-filter-execution-mode]')].map(b => b.dataset.filterExecutionMode);
   const activeTypes = [...document.querySelectorAll('.filter-btn.active[data-filter-task-type]')].map(b => b.dataset.filterTaskType);
 
+  const currentBoard = localStorage.getItem('cte-board-mode') || 'pablo';
+
   document.querySelectorAll('.card').forEach(card => {
     const proj = card.dataset.project;
     const tags = card.dataset.tags ? card.dataset.tags.split(',').filter(Boolean) : [];
@@ -546,13 +912,21 @@ function applyFilters() {
     const mode = card.dataset.executionMode;
     const type = card.dataset.taskType;
 
+    // Board mode filter
+    let boardMatch;
+    if (currentBoard === 'autonomous') {
+      boardMatch = mode === 'autonomous';
+    } else {
+      boardMatch = mode !== 'autonomous';
+    }
+
     const matchProj = activeProjects.length === 0 || activeProjects.includes(proj);
     const matchTag = activeTags.length === 0 || activeTags.some(t => tags.includes(t));
     const matchPriority = activePriorities.length === 0 || activePriorities.includes(priority);
     const matchMode = activeModes.length === 0 || activeModes.includes(mode);
     const matchType = activeTypes.length === 0 || activeTypes.includes(type);
 
-    card.style.display = (matchProj && matchTag && matchPriority && matchMode && matchType) ? '' : 'none';
+    card.style.display = (boardMatch && matchProj && matchTag && matchPriority && matchMode && matchType) ? '' : 'none';
   });
 }
 
@@ -598,8 +972,108 @@ document.getElementById('modal-overlay').addEventListener('click', (e) => {
   if (e.target === document.getElementById('modal-overlay')) closeModal();
 });
 
+// Create Task Form
+function openCreateForm() {
+  document.getElementById('create-form-overlay').classList.add('active');
+  document.getElementById('task-title').focus();
+}
+
+function closeCreateForm() {
+  document.getElementById('create-form-overlay').classList.remove('active');
+  document.getElementById('create-task-form').reset();
+  document.querySelectorAll('.tag-select-btn.selected').forEach(b => b.classList.remove('selected'));
+}
+
+document.getElementById('create-form-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('create-form-overlay')) closeCreateForm();
+});
+
+document.querySelectorAll('.tag-select-btn').forEach(btn => {
+  btn.addEventListener('click', () => btn.classList.toggle('selected'));
+});
+
+document.getElementById('create-task-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const body = {
+    title: document.getElementById('task-title').value,
+    description: document.getElementById('task-description').value || null,
+    priority: document.getElementById('task-priority').value,
+    project: document.getElementById('task-project').value || null,
+    execution_mode: document.getElementById('task-exec-mode').value,
+    tags: [...document.querySelectorAll('.tag-select-btn.selected')].map(b => b.dataset.tag),
+  };
+  try {
+    const res = await fetch('/api/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (res.ok) {
+      closeCreateForm();
+      location.reload();
+    } else {
+      const err = await res.json();
+      alert('Error: ' + (err.error || 'Unknown error'));
+    }
+  } catch (e) {
+    alert('Network error');
+  }
+});
+
+// Chat
+const chatPanel = document.getElementById('chat-panel');
+const chatInput = document.getElementById('chat-input');
+const chatToggle = document.getElementById('chat-toggle');
+let chatExpanded = false;
+
+chatToggle.addEventListener('click', () => {
+  chatExpanded = !chatExpanded;
+  chatPanel.classList.toggle('expanded', chatExpanded);
+  chatToggle.textContent = chatExpanded ? '\\u25BC' : '\\u25B2';
+});
+
+function addChatMessage(text, cls) {
+  const div = document.createElement('div');
+  div.className = 'chat-message ' + cls;
+  div.innerHTML = text.replace(/\`([^\`]+)\`/g, '<code>$1</code>').replace(/\\*\\*([^*]+)\\*\\*/g, '<strong>$1</strong>');
+  chatPanel.appendChild(div);
+  chatPanel.scrollTop = chatPanel.scrollHeight;
+  if (!chatExpanded) {
+    chatExpanded = true;
+    chatPanel.classList.add('expanded');
+    chatToggle.textContent = '\\u25BC';
+  }
+}
+
+async function sendChat() {
+  const msg = chatInput.value.trim();
+  if (!msg) return;
+  chatInput.value = '';
+  addChatMessage(msg, 'user');
+  try {
+    const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg }) });
+    const data = await res.json();
+    if (data.type === 'message' && data.queued) {
+      addChatMessage('⏳ Enviado a Claudio...', 'system');
+    }
+    if (data.response) addChatMessage(data.response, 'system');
+  } catch (e) {
+    addChatMessage('Network error', 'system');
+  }
+}
+
+document.getElementById('chat-send').addEventListener('click', sendChat);
+chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChat(); });
+
+// Poll for outbox messages
+setInterval(async () => {
+  try {
+    const res = await fetch('/api/chat');
+    const data = await res.json();
+    if (data.messages && data.messages.length > 0) {
+      data.messages.forEach(m => addChatMessage(m.message, 'system'));
+    }
+  } catch (e) {}
+}, 3000);
+
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Escape') { closeModal(); closeCreateForm(); }
 });
 
 function escapeHtmlJs(s) {

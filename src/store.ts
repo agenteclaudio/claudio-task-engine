@@ -71,7 +71,7 @@ export type AddTaskInput = {
   dependencies?: string[];
   tags?: string[];
   project?: string | null;
-  execution_mode?: "autonomous" | "review_needed" | "pair" | null;
+  execution_mode?: "autonomous" | "review_needed" | "pair" | "collaborative" | null;
   task_type?: "research" | "coding" | "writing" | "ops" | "mixed" | null;
   workdir?: string | null;
   needs_research?: boolean;
